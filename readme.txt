@@ -1,55 +1,74 @@
-=== Pods Item Container ===
-Contributors:      The WordPress Contributors
-Tags:              block
-Tested up to:      6.8
-Stable tag:        0.1.0
+=== PODS Block Suite ===
+Contributors:      hliljegren
+Tags:              pods, gutenberg, blocks, custom-fields, dynamic-content
+Requires at least: 6.5
+Tested up to:      6.7
+Requires PHP:      7.4
+Stable tag:        1.0.0
 License:           GPL-2.0-or-later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
 
-Example block scaffolded with Create Block tool.
+A complete suite of Gutenberg blocks for PODS that lets you display, loop, and filter custom fields directly in the Block Editor without legacy PODS Templates.
 
 == Description ==
 
-This is the long description. No limit, and you can use Markdown (as well as in the following sections).
+**PODS Block Suite** bridges the gap between the PODS Framework and the WordPress Block Editor (Gutenberg). Instead of writing HTML/Magic Tag templates inside PODS, you can visually compose layouts using native WordPress blocks combined with four specialized PODS blocks:
 
-For backwards compatibility, if this section is missing, the full length of the short description will be used, and
-Markdown parsed.
+1. **PODS Item Container (`pods-block-suite/item-container`)**
+   Provides a specific Post ID context (or inherits the current post/page context) to all nested inner blocks. Ideal for showcasing a single featured POD item anywhere on a page.
+
+2. **PODS Related Item Container (`pods-block-suite/related-item-container`)**
+   Loops through single or one-to-many PODS relationship fields (`pick`) and renders inner blocks for each related item. Supports Flexbox column/row grids, configurable column counts, item limits, and clickable cards.
+
+3. **PODS Item List Container (`pods-block-suite/item-list-container`)**
+   Queries and lists items from any selected POD with configurable sorting, pagination, responsive Flexbox grids, and **interactive frontend visitor filters**. Administrators can select which fields visitors can filter by:
+   * **Selection & Relationship fields (`pick`, `taxonomy`, `boolean`):** Automatically rendered as `<select>` dropdowns populated with available options.
+   * **Numeric & Currency fields (`number`, `currency`):** Rendered with a comparison operator selector (`=`, `>`, `>=`, `<`, `<=`) paired with a numeric input.
+   * **Text fields & Keyword Search:** Rendered as text inputs for partial matching.
+
+4. **PODS Smart Field (`pods-block-suite/smart-field`)**
+   A context-aware field block with dynamic POD and field dropdowns (including WordPress standard fields such as `post_thumbnail`, `post_title`, and `post_content`). Automatically adapts its output based on field type or manual override:
+   * **Media:** Images (with selectable sizes and optional media file links for lightboxes), HTML5 `<video>`, `<audio>`, and file download links.
+   * **oEmbed:** Responsive 16:9 embeds for YouTube, Vimeo, and other WordPress oEmbed providers.
+   * **Color Picker:** Renders colors as customizable square swatches, circle swatches, or hex labels.
+   * **Relationships:** Single or multi-item links/lists displaying any chosen field from the related post.
+   * **URLs & Text:** Clickable links (with custom label and `target="_blank"` options) or semantic HTML text wrappers (`<div>`, `<p>`, `<h2>`, `<h3>`, `<span>`).
 
 == Installation ==
 
-This section describes how to install the plugin and get it working.
+### Standard WordPress Installation
+1. Upload the `pods-block-suite` folder to the `/wp-content/plugins/` directory (or clone the repository directly into `/wp-content/plugins/`).
+2. Ensure the **PODS Framework** plugin is installed and activated.
+3. Activate **PODS Block Suite** through the **Plugins** menu in WordPress.
 
-e.g.
-
-1. Upload the plugin files to the `/wp-content/plugins/pods-item-container` directory, or install the plugin through the WordPress plugins screen directly.
-1. Activate the plugin through the 'Plugins' screen in WordPress
-
+### Development Setup
+If you want to modify the block source files inside `src/`:
+1. Navigate to the plugin directory in your terminal: `cd wp-content/plugins/pods-block-suite`
+2. Install dependencies: `npm install`
+3. Start development watch mode: `npm start`
+4. Build production assets: `npm run build`
 
 == Frequently Asked Questions ==
 
-= A question that someone might have =
+= Do I need to create PODS Templates to use these blocks? =
+No. All layout and markup are handled directly inside the WordPress Block Editor using inner blocks and the **PODS Smart Field** block.
 
-An answer to that question.
+= How does context work when nesting blocks? =
+All container blocks (`Item Container`, `Related Item Container`, and `Item List Container`) propagate `postId` and `postType` via WordPress's `render_block_context` filter. You can wrap **PODS Smart Field** blocks inside core `Group`, `Columns`, or `Stack` blocks without losing the item context.
 
-= What about foo bar? =
+= How should I embed YouTube or Vimeo videos with PODS Smart Field? =
+Store the video URL in a standard PODS **Website** or **Plain Text** field, then select that field in **PODS Smart Field** and set **Display As** to **oEmbed (YouTube / Vimeo / Embed)**.
 
-Answer to foo bar dilemma.
-
-== Screenshots ==
-
-1. This screen shot description corresponds to screenshot-1.(png|jpg|jpeg|gif). Note that the screenshot is taken from
-the /assets directory or the directory that contains the stable readme.txt (tags or trunk). Screenshots in the /assets
-directory take precedence. For example, `/assets/screenshot-1.png` would win over `/tags/4.3/screenshot-1.png`
-(or jpg, jpeg, gif).
-2. This is the second screen shot
+= Is the plugin translation-ready? =
+Yes. All interface strings use the `pods-block-suite` text domain and `@wordpress/i18n` / WordPress PHP localization functions.
 
 == Changelog ==
 
-= 0.1.0 =
-* Release
-
-== Arbitrary section ==
-
-You may provide arbitrary sections, in the same format as the ones above. This may be of use for extremely complicated
-plugins where more information needs to be conveyed that doesn't fit into the categories of "description" or
-"installation." Arbitrary sections will be shown below the built-in sections outlined above.
+= 1.0.0 =
+* Initial release of PODS Block Suite.
+* Added **PODS Item Container** block with custom Post ID override.
+* Added **PODS Related Item Container** block with Flexbox grid layout and clickable cards.
+* Added **PODS Item List Container** block with pagination and dynamic frontend visitor filters.
+* Added **PODS Smart Field** block supporting Media, oEmbed, Color Swatches, Relationships, Links, and WordPress standard fields.
+* Added REST API endpoint (`/wp-json/pods-block-suite/v1/schema`) for live POD and field discovery in the Block Editor.
+* Full internationalization (i18n) support under the `pods-block-suite` text domain.
