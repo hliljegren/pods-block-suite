@@ -1,0 +1,97 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "pods-block-suite/smart-field",
+  "version": "1.0.0",
+  "title": "PODS Smart Field",
+  "category": "widgets",
+  "icon": "media-default",
+  "description": "Intelligent field block with dynamic POD and field selectors, automatically rendering media, relationships, oEmbeds, colors, links, and text.",
+  "attributes": {
+    "selectedPod": {
+      "type": "string",
+      "default": ""
+    },
+    "fieldName": {
+      "type": "string",
+      "default": ""
+    },
+    "displayAs": {
+      "type": "string",
+      "default": "auto"
+    },
+    "layoutMode": {
+      "type": "string",
+      "default": "column"
+    },
+    "imageSize": {
+      "type": "string",
+      "default": "large"
+    },
+    "linkToMedia": {
+      "type": "boolean",
+      "default": false
+    },
+    "linkToRelated": {
+      "type": "boolean",
+      "default": true
+    },
+    "relatedDisplayField": {
+      "type": "string",
+      "default": "post_title"
+    },
+    "renderAsLink": {
+      "type": "boolean",
+      "default": true
+    },
+    "linkText": {
+      "type": "string",
+      "default": ""
+    },
+    "linkNewTab": {
+      "type": "boolean",
+      "default": false
+    },
+    "colorShape": {
+      "type": "string",
+      "default": "square"
+    },
+    "colorSize": {
+      "type": "number",
+      "default": 32
+    },
+    "showColorLabel": {
+      "type": "boolean",
+      "default": false
+    },
+    "htmlTag": {
+      "type": "string",
+      "default": "div"
+    }
+  },
+  "usesContext": [
+    "postId",
+    "postType"
+  ],
+  "supports": {
+    "html": false,
+    "align": true,
+    "color": {
+      "background": true,
+      "text": true,
+      "link": true
+    },
+    "typography": {
+      "fontSize": true,
+      "lineHeight": true
+    },
+    "spacing": {
+      "padding": true,
+      "margin": true
+    }
+  },
+  "textdomain": "pods-block-suite",
+  "editorScript": "file:./index.js",
+  "style": "file:./style-index.css",
+  "render": "file:./render.php"
+}

@@ -1,0 +1,44 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "pods-block-suite/item-container",
+  "version": "1.0.0",
+  "title": "PODS Item Container",
+  "category": "widgets",
+  "icon": "database",
+  "description": "A container block that provides a specific (or current) Post ID context to inner blocks such as PODS Smart Field.",
+  "attributes": {
+    "customPostId": {
+      "type": "number",
+      "default": 0
+    },
+    "resolvedPostType": {
+      "type": "string",
+      "default": ""
+    }
+  },
+  "usesContext": [
+    "postId",
+    "postType"
+  ],
+  "providesContext": {
+    "postId": "customPostId",
+    "postType": "resolvedPostType"
+  },
+  "supports": {
+    "html": false,
+    "layout": true,
+    "color": {
+      "background": true,
+      "text": true
+    },
+    "spacing": {
+      "padding": true,
+      "margin": true
+    }
+  },
+  "textdomain": "pods-block-suite",
+  "editorScript": "file:./index.js",
+  "editorStyle": "file:./index.css",
+  "render": "file:./render.php"
+}

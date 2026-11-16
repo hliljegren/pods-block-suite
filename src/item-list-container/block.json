@@ -1,0 +1,72 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "pods-block-suite/item-list-container",
+	"version": "1.0.0",
+	"title": "PODS Item List Container",
+	"category": "widgets",
+	"icon": "list-view",
+	"description": "Lists items from a POD with optional frontend visitor filters, pagination, and flexible grid layout.",
+	"attributes": {
+		"selectedPod": {
+			"type": "string",
+			"default": ""
+		},
+		"limit": {
+			"type": "number",
+			"default": 12
+		},
+		"orderBy": {
+			"type": "string",
+			"default": "t.post_date"
+		},
+		"orderDir": {
+			"type": "string",
+			"default": "DESC"
+		},
+		"enablePagination": {
+			"type": "boolean",
+			"default": true
+		},
+		"filterFields": {
+			"type": "array",
+			"default": [],
+			"items": {
+				"type": "string"
+			}
+		},
+		"enableSearch": {
+			"type": "boolean",
+			"default": false
+		},
+		"flexDirection": {
+			"type": "string",
+			"default": "row"
+		},
+		"columns": {
+			"type": "number",
+			"default": 3
+		},
+		"linkToPost": {
+			"type": "boolean",
+			"default": false
+		}
+	},
+	"supports": {
+		"html": false,
+		"layout": true,
+		"color": {
+			"background": true,
+			"text": true
+		},
+		"spacing": {
+			"padding": true,
+			"margin": true
+		}
+	},
+	"textdomain": "pods-block-suite",
+	"editorScript": "file:./index.js",
+	"editorStyle": "file:./index.css",
+	"style": "file:./style-index.css",
+	"render": "file:./render.php"
+}

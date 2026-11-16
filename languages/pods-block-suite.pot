@@ -1,0 +1,619 @@
+# Copyright (C) 2026 Håkan
+# This file is distributed under the same license as the PODS Block Suite plugin.
+msgid ""
+msgstr ""
+"Project-Id-Version: PODS Block Suite 1.0.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/pods-block-suite\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-11-16T08:56:55+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.12.0\n"
+"X-Domain: pods-block-suite\n"
+
+#. Plugin Name of the plugin
+#: pods-block-suite.php
+msgid "PODS Block Suite"
+msgstr ""
+
+#. Description of the plugin
+#: pods-block-suite.php
+msgid "A comprehensive suite of Gutenberg blocks for PODS (Item Container, Related Item Container, and Smart Field)."
+msgstr ""
+
+#. Author of the plugin
+#: pods-block-suite.php
+msgid "Håkan"
+msgstr ""
+
+#. translators: %s: PODS field slug
+#: build/smart-field/render.php:311
+#: src/smart-field/render.php:311
+#, php-format
+msgid "PODS Smart Field: \"%s\" is empty or could not be found."
+msgstr ""
+
+#: pods-block-suite.php:61
+msgid "Post Title (post_title)"
+msgstr ""
+
+#: pods-block-suite.php:67
+msgid "Post Content (post_content)"
+msgstr ""
+
+#: pods-block-suite.php:73
+msgid "Post Excerpt (post_excerpt)"
+msgstr ""
+
+#: pods-block-suite.php:79
+msgid "Post Date (post_date)"
+msgstr ""
+
+#: pods-block-suite.php:85
+msgid "Post ID (ID)"
+msgstr ""
+
+#: pods-block-suite.php:91
+msgid "Author (post_author)"
+msgstr ""
+
+#: pods-block-suite.php:97
+msgid "Permalink (permalink)"
+msgstr ""
+
+#: build/item-container/index.js:1
+#: src/item-container/edit.js:95
+msgid "— Select POD —"
+msgstr ""
+
+#: build/item-container/index.js:1
+#: src/item-container/edit.js:108
+msgid "PODS Data Source"
+msgstr ""
+
+#: build/item-container/index.js:1
+#: src/item-container/edit.js:114
+msgid "Loading PODS fields..."
+msgstr ""
+
+#: build/item-container/index.js:1
+#: src/item-container/edit.js:119
+msgid "1. Select POD"
+msgstr ""
+
+#: build/item-container/index.js:1
+#: src/item-container/edit.js:122
+msgid "Pre-selected from page or container context."
+msgstr ""
+
+#: build/item-container/index.js:1
+#: src/item-container/edit.js:123
+msgid "Choose which POD to retrieve fields from."
+msgstr ""
+
+#: build/item-container/index.js:1
+#: src/item-container/edit.js:142
+msgid "2. Select Field"
+msgstr ""
+
+#: build/item-container/index.js:1
+#: src/item-container/edit.js:154
+msgid "— Select a field —"
+msgstr ""
+
+#: build/item-container/index.js:1
+#: src/item-container/edit.js:157
+msgid "PODS Fields"
+msgstr ""
+
+#: build/item-container/index.js:1
+#: src/item-container/edit.js:165
+msgid "WordPress Standard Fields"
+msgstr ""
+
+#: build/item-container/index.js:1
+#: src/item-container/edit.js:176
+msgid "Or enter field slug manually"
+msgstr ""
+
+#: build/item-container/index.js:1
+#: src/item-container/edit.js:186
+msgid "Display As"
+msgstr ""
+
+#. translators: %s: Detected display mode
+#: build/item-container/index.js:2
+#: src/item-container/edit.js:193
+#, js-format
+msgid "Automatic (%s)"
+msgstr ""
+
+#: build/item-container/index.js:2
+#: src/item-container/edit.js:196
+msgid "Automatic (Auto)"
+msgstr ""
+
+#: build/item-container/index.js:2
+#: src/item-container/edit.js:199
+msgid "Media (Image / Video / Audio)"
+msgstr ""
+
+#: build/item-container/index.js:2
+#: src/item-container/edit.js:200
+msgid "Related Post (Link / List)"
+msgstr ""
+
+#: build/item-container/index.js:2
+#: src/item-container/edit.js:201
+msgid "Website URL (Link)"
+msgstr ""
+
+#: build/item-container/index.js:2
+#: src/item-container/edit.js:202
+msgid "Plain Text / HTML"
+msgstr ""
+
+#: build/item-container/index.js:2
+#: src/item-container/edit.js:214
+msgid "Display Settings"
+msgstr ""
+
+#: build/item-container/index.js:2
+#: src/item-container/edit.js:221
+msgid "Image Size"
+msgstr ""
+
+#: build/item-container/index.js:2
+#: src/item-container/edit.js:224
+msgid "Thumbnail"
+msgstr ""
+
+#: build/item-container/index.js:2
+#: src/item-container/edit.js:225
+msgid "Medium"
+msgstr ""
+
+#: build/item-container/index.js:2
+#: src/item-container/edit.js:226
+msgid "Large"
+msgstr ""
+
+#: build/item-container/index.js:2
+#: src/item-container/edit.js:227
+msgid "Full Size"
+msgstr ""
+
+#: build/item-container/index.js:2
+#: build/smart-field/index.js:1
+#: src/item-container/edit.js:233
+#: src/smart-field/edit.js:222
+msgid "Link to media file"
+msgstr ""
+
+#: build/item-container/index.js:2
+#: src/item-container/edit.js:234
+msgid "Wraps images in a link to the original media file (enables lightbox plugins)."
+msgstr ""
+
+#: build/item-container/index.js:2
+#: src/item-container/edit.js:248
+msgid "Link to related post"
+msgstr ""
+
+#: build/item-container/index.js:2
+#: src/item-container/edit.js:249
+msgid "Makes each related item clickable to its single post page."
+msgstr ""
+
+#: build/item-container/index.js:2
+#: src/item-container/edit.js:259
+#: src/item-container/edit.js:275
+msgid "Field to display as text / link label"
+msgstr ""
+
+#: build/item-container/index.js:2
+#: src/item-container/edit.js:260
+msgid "Choose which field from the related post to display."
+msgstr ""
+
+#: build/item-container/index.js:2
+#: src/item-container/edit.js:276
+msgid "Defaults to \"post_title\"."
+msgstr ""
+
+#: build/item-container/index.js:2
+#: src/item-container/edit.js:293
+msgid "Render as clickable link"
+msgstr ""
+
+#: build/item-container/index.js:2
+#: src/item-container/edit.js:294
+msgid "Uncheck to output the raw URL as plain text instead."
+msgstr ""
+
+#: build/item-container/index.js:2
+#: src/item-container/edit.js:305
+msgid "Link Text (optional)"
+msgstr ""
+
+#: build/item-container/index.js:2
+#: src/item-container/edit.js:306
+msgid "Leave empty to use the URL itself as the link text."
+msgstr ""
+
+#: build/item-container/index.js:2
+#: src/item-container/edit.js:310
+msgid "e.g. Visit Website"
+msgstr ""
+
+#: build/item-container/index.js:2
+#: src/item-container/edit.js:316
+msgid "Open in new tab (target=\"_blank\")"
+msgstr ""
+
+#: build/item-container/index.js:2
+#: src/item-container/edit.js:328
+msgid "Multi-item Layout"
+msgstr ""
+
+#: build/item-container/index.js:2
+#: src/item-container/edit.js:329
+msgid "Controls how repeated images or multiple related posts are arranged."
+msgstr ""
+
+#: build/item-container/index.js:2
+#: src/item-container/edit.js:335
+msgid "Flexbox: Column (vertical)"
+msgstr ""
+
+#: build/item-container/index.js:2
+#: src/item-container/edit.js:336
+msgid "Flexbox: Row (horizontal)"
+msgstr ""
+
+#: build/item-container/index.js:2
+#: src/item-container/edit.js:337
+msgid "Unordered List (<ul>)"
+msgstr ""
+
+#: build/item-container/index.js:2
+#: src/item-container/edit.js:338
+msgid "Ordered List (<ol>)"
+msgstr ""
+
+#: build/item-container/index.js:2
+#: src/item-container/edit.js:347
+msgid "HTML Wrapper Tag"
+msgstr ""
+
+#: build/item-container/index.js:2
+#: src/item-container/edit.js:350
+msgid "<div> (Default)"
+msgstr ""
+
+#: build/item-container/index.js:2
+#: src/item-container/edit.js:351
+msgid "<p> (Paragraph)"
+msgstr ""
+
+#: build/item-container/index.js:2
+#: src/item-container/edit.js:352
+msgid "<h2> (Heading 2)"
+msgstr ""
+
+#: build/item-container/index.js:2
+#: src/item-container/edit.js:353
+msgid "<h3> (Heading 3)"
+msgstr ""
+
+#: build/item-container/index.js:2
+#: src/item-container/edit.js:354
+msgid "<span> (Inline)"
+msgstr ""
+
+#: build/item-container/index.js:2
+#: build/smart-field/index.js:1
+#: src/item-container/edit.js:367
+#: src/smart-field/edit.js:352
+msgid "PODS Smart Field"
+msgstr ""
+
+#: build/item-container/index.js:2
+#: src/item-container/edit.js:368
+msgid "Select a POD and a field in the block sidebar on the right."
+msgstr ""
+
+#: build/related-item-container/index.js:1
+#: src/related-item-container/edit.js:23
+#, js-format
+msgid "(max %d)"
+msgstr ""
+
+#: build/related-item-container/index.js:1
+#: src/related-item-container/edit.js:24
+msgid "(all)"
+msgstr ""
+
+#: build/related-item-container/index.js:1
+#: src/related-item-container/edit.js:28
+#, js-format
+msgid "Row (%d cols)"
+msgstr ""
+
+#: build/related-item-container/index.js:1
+#: src/related-item-container/edit.js:29
+msgid "Column"
+msgstr ""
+
+#: build/related-item-container/index.js:1
+#: src/related-item-container/edit.js:32
+msgid "Clickable card"
+msgstr ""
+
+#. translators: 1: Relationship field slug, 2: Limit label, 3: Layout label, 4: Optional link label
+#: build/related-item-container/index.js:2
+#: src/related-item-container/edit.js:38
+#, js-format
+msgid "PODS Relation: %1$s %2$s • %3$s%4$s"
+msgstr ""
+
+#: build/related-item-container/index.js:2
+#: src/related-item-container/edit.js:44
+msgid "PODS Related Item Container (enter field name in sidebar)"
+msgstr ""
+
+#: build/related-item-container/index.js:2
+#: src/related-item-container/edit.js:57
+msgid "PODS Relationship Settings"
+msgstr ""
+
+#: build/related-item-container/index.js:2
+#: src/related-item-container/edit.js:61
+msgid "Relationship Field Name"
+msgstr ""
+
+#: build/related-item-container/index.js:2
+#: src/related-item-container/edit.js:62
+msgid "Enter the machine name (slug) of the PODS relationship field, e.g. \"author\" or \"related_books\"."
+msgstr ""
+
+#: build/related-item-container/index.js:2
+#: src/related-item-container/edit.js:66
+msgid "e.g. author"
+msgstr ""
+
+#: build/related-item-container/index.js:2
+#: src/related-item-container/edit.js:74
+msgid "Max Related Items"
+msgstr ""
+
+#: build/related-item-container/index.js:2
+#: src/related-item-container/edit.js:75
+msgid "Leave as 0 to display all related items."
+msgstr ""
+
+#: build/related-item-container/index.js:2
+#: src/related-item-container/edit.js:91
+msgid "Make entire card clickable (Link to post)"
+msgstr ""
+
+#: build/related-item-container/index.js:2
+#: src/related-item-container/edit.js:92
+msgid "Wraps each related item in a link pointing to its single post permalink."
+msgstr ""
+
+#: build/related-item-container/index.js:2
+#: src/related-item-container/edit.js:102
+msgid "Enter a relationship field name above, then insert field blocks inside this container."
+msgstr ""
+
+#: build/related-item-container/index.js:2
+#: src/related-item-container/edit.js:111
+msgid "Layout Settings"
+msgstr ""
+
+#: build/related-item-container/index.js:2
+#: src/related-item-container/edit.js:115
+msgid "Flex Direction"
+msgstr ""
+
+#: build/related-item-container/index.js:2
+#: src/related-item-container/edit.js:118
+msgid "Column (vertical)"
+msgstr ""
+
+#: build/related-item-container/index.js:2
+#: src/related-item-container/edit.js:119
+msgid "Row (horizontal grid)"
+msgstr ""
+
+#: build/related-item-container/index.js:2
+#: src/related-item-container/edit.js:126
+msgid "Columns per row"
+msgstr ""
+
+#: build/related-item-container/index.js:2
+#: src/related-item-container/edit.js:127
+msgid "Controls the width of each related item card on desktop screens."
+msgstr ""
+
+#: build/smart-field/index.js:1
+#: src/smart-field/edit.js:90
+msgid "— Välj POD —"
+msgstr ""
+
+#: build/smart-field/index.js:1
+#: src/smart-field/edit.js:103
+msgid "PODS Datakälla"
+msgstr ""
+
+#: build/smart-field/index.js:1
+#: src/smart-field/edit.js:109
+msgid "Laddar PODS-fält..."
+msgstr ""
+
+#: build/smart-field/index.js:1
+#: src/smart-field/edit.js:114
+msgid "1. Välj POD"
+msgstr ""
+
+#: build/smart-field/index.js:1
+#: src/smart-field/edit.js:117
+msgid "Förvald från sidans/containerns kontext."
+msgstr ""
+
+#: build/smart-field/index.js:1
+#: src/smart-field/edit.js:118
+msgid "Välj vilken POD du vill hämta fält från."
+msgstr ""
+
+#: build/smart-field/index.js:1
+#: src/smart-field/edit.js:137
+msgid "2. Välj fält"
+msgstr ""
+
+#: build/smart-field/index.js:1
+#: src/smart-field/edit.js:149
+msgid "— Välj ett fält —"
+msgstr ""
+
+#: build/smart-field/index.js:1
+#: src/smart-field/edit.js:152
+msgid "PODS Fält"
+msgstr ""
+
+#: build/smart-field/index.js:1
+#: src/smart-field/edit.js:160
+msgid "WordPress Standardfält"
+msgstr ""
+
+#: build/smart-field/index.js:1
+#: src/smart-field/edit.js:171
+msgid "Eller ange fältnamn manuellt (slug)"
+msgstr ""
+
+#: build/smart-field/index.js:1
+#: src/smart-field/edit.js:181
+msgid "Visa som (Display as)"
+msgstr ""
+
+#: build/smart-field/index.js:1
+#: src/smart-field/edit.js:204
+msgid "Visningsinställningar"
+msgstr ""
+
+#: build/smart-field/index.js:1
+#: src/smart-field/edit.js:210
+msgid "Bildstorlek"
+msgstr ""
+
+#: build/smart-field/index.js:1
+#: src/smart-field/edit.js:223
+msgid "Omsluter bilder med länk till originalfilen (för lightbox)."
+msgstr ""
+
+#: build/smart-field/index.js:1
+#: src/smart-field/edit.js:236
+msgid "Länka till relaterad post"
+msgstr ""
+
+#: build/smart-field/index.js:1
+#: src/smart-field/edit.js:237
+msgid "Gör varje relaterat objekt klickbart till dess egen sida."
+msgstr ""
+
+#: build/smart-field/index.js:1
+#: src/smart-field/edit.js:247
+#: src/smart-field/edit.js:263
+msgid "Fält att visa som text / länktext"
+msgstr ""
+
+#: build/smart-field/index.js:1
+#: src/smart-field/edit.js:248
+msgid "Välj vilket fält från den relaterade posten som ska skrivas ut."
+msgstr ""
+
+#: build/smart-field/index.js:1
+#: src/smart-field/edit.js:264
+msgid "Standard är \"post_title\"."
+msgstr ""
+
+#: build/smart-field/index.js:1
+#: src/smart-field/edit.js:280
+msgid "Visa som klickbar länk (Link)"
+msgstr ""
+
+#: build/smart-field/index.js:1
+#: src/smart-field/edit.js:281
+msgid "Bocka ur om du bara vill skriva ut webbadressen som vanlig text."
+msgstr ""
+
+#: build/smart-field/index.js:1
+#: src/smart-field/edit.js:292
+msgid "Länktext (valfritt)"
+msgstr ""
+
+#: build/smart-field/index.js:1
+#: src/smart-field/edit.js:293
+msgid "Lämna tomt för att använda själva URL:en som länktext."
+msgstr ""
+
+#: build/smart-field/index.js:1
+#: src/smart-field/edit.js:303
+msgid "Öppna i ny flik (target=\"_blank\")"
+msgstr ""
+
+#: build/smart-field/index.js:1
+#: src/smart-field/edit.js:314
+msgid "Layout vid flera objekt"
+msgstr ""
+
+#: build/smart-field/index.js:1
+#: src/smart-field/edit.js:315
+msgid "Styr hur repeterade bilder eller flera relaterade poster visas."
+msgstr ""
+
+#: build/smart-field/index.js:1
+#: src/smart-field/edit.js:332
+msgid "HTML-tagg"
+msgstr ""
+
+#: build/smart-field/index.js:1
+#: src/smart-field/edit.js:353
+msgid "Välj en POD och ett fält i sidopanelen till höger."
+msgstr ""
+
+#: build/item-container/block.json
+#: build/smart-field/block.json
+#: src/item-container/block.json
+#: src/smart-field/block.json
+msgctxt "block title"
+msgid "PODS Smart Field"
+msgstr ""
+
+#: build/item-container/block.json
+#: src/item-container/block.json
+msgctxt "block description"
+msgid "Intelligent field block with dynamic POD and field selectors, automatically rendering media, relationships, links, and text."
+msgstr ""
+
+#: build/related-item-container/block.json
+#: src/related-item-container/block.json
+msgctxt "block title"
+msgid "PODS Related Item Container"
+msgstr ""
+
+#: build/related-item-container/block.json
+#: src/related-item-container/block.json
+msgctxt "block description"
+msgid "Loops through a related PODS field (single or one-to-many) and renders each item in a flexible layout or as clickable cards."
+msgstr ""
+
+#: build/smart-field/block.json
+#: src/smart-field/block.json
+msgctxt "block description"
+msgid "Intelligent fältblock med dynamisk POD- och fältväljare samt automatisk rendering av media, relationer, länkar och text."
+msgstr ""

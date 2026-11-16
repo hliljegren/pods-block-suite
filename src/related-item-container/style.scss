@@ -1,0 +1,57 @@
+.wp-block-pods-block-suite-related-item-container {
+	--pods-gap: 1.5rem;
+	--pods-columns: 3;
+
+	display: flex;
+	gap: var(--pods-gap);
+
+	&.is-direction-column {
+		flex-direction: column;
+
+		.pods-related-item {
+			width: 100%;
+		}
+	}
+
+	&.is-direction-row {
+		flex-direction: row;
+		flex-wrap: wrap;
+		align-items: stretch;
+
+		.pods-related-item {
+			box-sizing: border-box;
+			/* Calculate exact column width accounting for flex gap */
+			flex: 0 0 calc((100% - (var(--pods-columns) - 1) * var(--pods-gap)) / var(--pods-columns));
+			max-width: calc((100% - (var(--pods-columns) - 1) * var(--pods-gap)) / var(--pods-columns));
+		}
+
+		/* Responsive breakpoints for tablet and mobile */
+		@media (max-width: 900px) {
+			.pods-related-item {
+				flex: 0 0 calc((100% - var(--pods-gap)) / 2);
+				max-width: calc((100% - var(--pods-gap)) / 2);
+			}
+		}
+
+		@media (max-width: 600px) {
+			.pods-related-item {
+				flex: 0 0 100%;
+				max-width: 100%;
+			}
+		}
+	}
+
+	/* Preserve inner block styling when the entire card is rendered as an anchor tag */
+	a.pods-related-item-link {
+		display: block;
+		text-decoration: none;
+		color: inherit;
+		cursor: pointer;
+		transition: transform 0.15s ease, opacity 0.15s ease;
+
+		&:hover,
+		&:focus-visible {
+			opacity: 0.92;
+		}
+	}
+}
