@@ -92,6 +92,10 @@ return array(
 				'type' => 'string',
 				'default' => 'row'
 			),
+			'justifyContent' => array(
+				'type' => 'string',
+				'default' => 'center'
+			),
 			'columns' => array(
 				'type' => 'number',
 				'default' => 3
@@ -123,23 +127,47 @@ return array(
 		'$schema' => 'https://schemas.wp.org/trunk/block.json',
 		'apiVersion' => 3,
 		'name' => 'pods-block-suite/related-item-container',
-		'version' => '1.0.0',
+		'version' => '1.1.0',
 		'title' => 'PODS Related Item Container',
 		'category' => 'widgets',
 		'icon' => 'networking',
 		'description' => 'Loops through a related PODS field (single or one-to-many) and renders each item in a flexible layout or as clickable cards.',
 		'attributes' => array(
+			'selectedPod' => array(
+				'type' => 'string',
+				'default' => ''
+			),
+			'relationshipField' => array(
+				'type' => 'string',
+				'default' => ''
+			),
 			'relationField' => array(
 				'type' => 'string',
 				'default' => ''
+			),
+			'limit' => array(
+				'type' => 'number',
+				'default' => 0
 			),
 			'maxItems' => array(
 				'type' => 'number',
 				'default' => 0
 			),
+			'orderBy' => array(
+				'type' => 'string',
+				'default' => 'post_date'
+			),
+			'orderDir' => array(
+				'type' => 'string',
+				'default' => 'DESC'
+			),
 			'flexDirection' => array(
 				'type' => 'string',
 				'default' => 'column'
+			),
+			'justifyContent' => array(
+				'type' => 'string',
+				'default' => 'center'
 			),
 			'columns' => array(
 				'type' => 'number',
@@ -176,11 +204,11 @@ return array(
 		'$schema' => 'https://schemas.wp.org/trunk/block.json',
 		'apiVersion' => 3,
 		'name' => 'pods-block-suite/smart-field',
-		'version' => '1.0.0',
+		'version' => '1.1.0',
 		'title' => 'PODS Smart Field',
 		'category' => 'widgets',
 		'icon' => 'media-default',
-		'description' => 'Intelligent field block with dynamic POD and field selectors, automatically rendering media, relationships, oEmbeds, colors, links, and text.',
+		'description' => 'Intelligent field block with dynamic POD and field selectors, automatically rendering media, relationships, oEmbeds, colors, social icons, links, and text.',
 		'attributes' => array(
 			'selectedPod' => array(
 				'type' => 'string',
@@ -197,6 +225,14 @@ return array(
 			'layoutMode' => array(
 				'type' => 'string',
 				'default' => 'column'
+			),
+			'justifyContent' => array(
+				'type' => 'string',
+				'default' => 'center'
+			),
+			'limit' => array(
+				'type' => 'number',
+				'default' => 0
 			),
 			'imageSize' => array(
 				'type' => 'string',
@@ -225,6 +261,18 @@ return array(
 			'linkNewTab' => array(
 				'type' => 'boolean',
 				'default' => false
+			),
+			'socialColorMode' => array(
+				'type' => 'string',
+				'default' => 'brand'
+			),
+			'socialSize' => array(
+				'type' => 'number',
+				'default' => 36
+			),
+			'socialBorderRadius' => array(
+				'type' => 'number',
+				'default' => 50
 			),
 			'colorShape' => array(
 				'type' => 'string',

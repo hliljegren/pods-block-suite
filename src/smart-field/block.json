@@ -2,11 +2,11 @@
 	"$schema": "https://schemas.wp.org/trunk/block.json",
 	"apiVersion": 3,
 	"name": "pods-block-suite/smart-field",
-	"version": "1.0.0",
+	"version": "1.1.0",
 	"title": "PODS Smart Field",
 	"category": "widgets",
 	"icon": "media-default",
-	"description": "Intelligent field block with dynamic POD and field selectors, automatically rendering media, relationships, oEmbeds, colors, links, and text.",
+	"description": "Intelligent field block with dynamic POD and field selectors, automatically rendering media, relationships, oEmbeds, colors, social icons, links, and text.",
 	"attributes": {
 		"selectedPod": {
 			"type": "string",
@@ -23,6 +23,14 @@
 		"layoutMode": {
 			"type": "string",
 			"default": "column"
+		},
+		"justifyContent": {
+			"type": "string",
+			"default": "center"
+		},
+		"limit": {
+			"type": "number",
+			"default": 0
 		},
 		"imageSize": {
 			"type": "string",
@@ -51,6 +59,18 @@
 		"linkNewTab": {
 			"type": "boolean",
 			"default": false
+		},
+		"socialColorMode": {
+			"type": "string",
+			"default": "brand"
+		},
+		"socialSize": {
+			"type": "number",
+			"default": 36
+		},
+		"socialBorderRadius": {
+			"type": "number",
+			"default": 50
 		},
 		"colorShape": {
 			"type": "string",

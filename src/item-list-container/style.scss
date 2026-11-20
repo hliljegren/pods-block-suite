@@ -1,6 +1,14 @@
 .wp-block-pods-block-suite-item-list-container {
 	--pods-gap: 1.5rem;
 	--pods-columns: 3;
+	width: 100%;
+
+	/* Neutralize WordPress FSE flow layout top-margin on 2nd+ items */
+	&.wp-block-pods-block-suite-item-list-container-is-layout-flow > *,
+	.pods-item-list-grid > .pods-list-item {
+		margin-block-start: 0;
+		margin-block-end: 0;
+	}
 
 	/* Visitor Filter Bar */
 	.pods-list-filters-form {
@@ -89,7 +97,9 @@
 	/* Items Grid / List */
 	.pods-item-list-grid {
 		display: flex;
-		gap: var(--pods-gap);
+		gap: var(--pods-gap, 1.5rem);
+		justify-content: var(--pods-justify-content, center);
+		width: 100%;
 
 		&.is-direction-column {
 			flex-direction: column;
@@ -106,14 +116,14 @@
 
 			.pods-list-item {
 				box-sizing: border-box;
-				flex: 0 0 calc((100% - (var(--pods-columns) - 1) * var(--pods-gap)) / var(--pods-columns));
-				max-width: calc((100% - (var(--pods-columns) - 1) * var(--pods-gap)) / var(--pods-columns));
+				flex: 0 0 calc((100% - (var(--pods-columns) - 1) * var(--pods-gap, 1.5rem)) / var(--pods-columns));
+				max-width: calc((100% - (var(--pods-columns) - 1) * var(--pods-gap, 1.5rem)) / var(--pods-columns));
 			}
 
 			@media (max-width: 900px) {
 				.pods-list-item {
-					flex: 0 0 calc((100% - var(--pods-gap)) / 2);
-					max-width: calc((100% - var(--pods-gap)) / 2);
+					flex: 0 0 calc((100% - var(--pods-gap, 1.5rem)) / 2);
+					max-width: calc((100% - var(--pods-gap, 1.5rem)) / 2);
 				}
 			}
 

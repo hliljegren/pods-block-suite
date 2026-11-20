@@ -1,10 +1,12 @@
 <?php return array(
 	'dependencies' => array(
 		'react-jsx-runtime',
+		'wp-api-fetch',
 		'wp-block-editor',
 		'wp-blocks',
 		'wp-components',
+		'wp-element',
 		'wp-i18n'
 	),
-	'version' => '4f08822e8fea400a3629'
+	'version' => '5fe5bcff6d9a18d9c37e'
 );

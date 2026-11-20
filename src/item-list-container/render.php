@@ -15,23 +15,21 @@ global $wpdb, $post;
 
 $selected_pod      = isset( $attributes['selectedPod'] ) ? sanitize_key( $attributes['selectedPod'] ) : '';
 $limit             = isset( $attributes['limit'] ) ? intval( $attributes['limit'] ) : 12;
-$order_by          = isset( $attributes['orderBy'] ) ? sanitize_text_field( $attributes['orderBy'] ) : 't.post_date';
-$order_dir         = isset( $attributes['orderDir'] ) && 'ASC' === strtoupper( $attributes['orderDir'] ) ? 'ASC' : 'DESC';
+$order_by          = isset( $attributes['orderBy'] ) ? sanitize_text_field( $attributes['orderBy'] ) : 'post_date';
+$raw_order_dir     = isset( $attributes['orderDir'] ) ? strtoupper( $attributes['orderDir'] ) : 'DESC';
+$order_dir         = in_array( $raw_order_dir, array( 'ASC', 'DESC', 'RAND' ), true ) ? $raw_order_dir : 'DESC';
 $enable_pagination = isset( $attributes['enablePagination'] ) ? (bool) $attributes['enablePagination'] : true;
 $filter_fields     = isset( $attributes['filterFields'] ) && is_array( $attributes['filterFields'] ) ? array_map( 'sanitize_key', $attributes['filterFields'] ) : array();
 $enable_search     = ! empty( $attributes['enableSearch'] );
 $flex_direction    = isset( $attributes['flexDirection'] ) && 'column' === $attributes['flexDirection'] ? 'column' : 'row';
+$allowed_justify   = array( 'flex-start', 'center', 'flex-end', 'space-between', 'space-around', 'space-evenly' );
+$raw_justify       = isset( $attributes['justifyContent'] ) ? sanitize_key( $attributes['justifyContent'] ) : 'center';
+$justify_content   = in_array( $raw_justify, $allowed_justify, true ) ? $raw_justify : 'center';
 $columns           = isset( $attributes['columns'] ) ? max( 1, min( 6, absint( $attributes['columns'] ) ) ) : 3;
 $link_to_post      = ! empty( $attributes['linkToPost'] );
 
 if ( empty( $selected_pod ) ) {
 	return;
-}
-
-// Validate allowed orderBy clauses for security
-$allowed_order_by = array( 't.post_date', 't.post_title', 't.menu_order', 't.ID', 'RAND()' );
-if ( ! in_array( $order_by, $allowed_order_by, true ) ) {
-	$order_by = 't.post_date';
 }
 
 // Initialize POD object to inspect schema & field definitions
@@ -124,11 +122,51 @@ foreach ( $filter_fields as $f_slug ) {
 $page_param   = 'pods_page_' . $selected_pod;
 $current_page = ( $enable_pagination && isset( $_GET[ $page_param ] ) ) ? max( 1, absint( $_GET[ $page_param ] ) ) : 1;
 
+// Build safe SQL ORDER BY expression (supporting WP standard fields, PODS numeric/text fields, and RAND)
+$clean_order_by  = preg_replace( '/^t\./', '', $order_by );
+$wp_standard_map = array(
+	'post_date'   => 't.post_date',
+	'post_title'  => 't.post_title',
+	'post_author' => 't.post_author',
+	'menu_order'  => 't.menu_order',
+	'ID'          => 't.ID',
+);
+
+if ( 'RAND' === $order_dir || 'RAND()' === $order_by ) {
+	$orderby_sql = 'RAND()';
+} elseif ( isset( $wp_standard_map[ $clean_order_by ] ) ) {
+	$orderby_sql = "{$wp_standard_map[ $clean_order_by ]} {$order_dir}";
+} else {
+	$sort_field_slug = sanitize_key( $clean_order_by );
+	$sort_field_obj  = $pod->fields( $sort_field_slug );
+
+	if ( $sort_field_obj ) {
+		$sort_field_type = is_object( $sort_field_obj ) && method_exists( $sort_field_obj, 'get_type' )
+			? $sort_field_obj->get_type()
+			: ( $sort_field_obj['type'] ?? 'text' );
+
+		if ( in_array( $sort_field_type, array( 'number', 'currency' ), true ) ) {
+			$orderby_sql = "CAST( {$sort_field_slug}.meta_value AS DECIMAL(12,2) ) {$order_dir}";
+		} elseif ( 'pick' === $sort_field_type ) {
+			$pick_obj = is_object( $sort_field_obj ) ? $sort_field_obj->get_arg( 'pick_object', '' ) : ( $sort_field_obj['pick_object'] ?? '' );
+			if ( in_array( $pick_obj, array( 'post_type', 'taxonomy', 'user' ), true ) ) {
+				$orderby_sql = "{$sort_field_slug}.post_title {$order_dir}";
+			} else {
+				$orderby_sql = "{$sort_field_slug}.meta_value {$order_dir}";
+			}
+		} else {
+			$orderby_sql = "{$sort_field_slug}.meta_value {$order_dir}";
+		}
+	} else {
+		$orderby_sql = "t.post_date {$order_dir}";
+	}
+}
+
 $find_params = array(
 	'limit'      => $limit,
 	'page'       => $current_page,
 	'pagination' => $enable_pagination,
-	'orderby'    => ( 'RAND()' === $order_by ) ? 'RAND()' : "{$order_by} {$order_dir}",
+	'orderby'    => $orderby_sql,
 );
 
 if ( ! empty( $where_clauses ) ) {
@@ -435,7 +473,7 @@ if ( $enable_pagination && $limit > 0 ) {
 $wrapper_attributes = get_block_wrapper_attributes(
 	array(
 		'class' => 'pods-item-list-container',
-		'style' => sprintf( '--pods-columns: %d;', $columns ),
+		'style' => sprintf( '--pods-columns: %d; --pods-justify-content: %s;', $columns, esc_attr( $justify_content ) ),
 	)
 );
 

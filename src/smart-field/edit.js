@@ -20,6 +20,8 @@ export default function Edit( { attributes, setAttributes, context } ) {
 		fieldName,
 		displayAs,
 		layoutMode,
+		justifyContent,
+		limit,
 		imageSize,
 		linkToMedia,
 		linkToRelated,
@@ -27,6 +29,9 @@ export default function Edit( { attributes, setAttributes, context } ) {
 		renderAsLink,
 		linkText,
 		linkNewTab,
+		socialColorMode,
+		socialSize,
+		socialBorderRadius,
 		colorShape,
 		colorSize,
 		showColorLabel,
@@ -74,7 +79,7 @@ export default function Edit( { attributes, setAttributes, context } ) {
 		: [];
 	const currentFieldMeta = allFieldsForPod.find( ( f ) => f.name === fieldName ) || null;
 
-	// Determine effective display mode ('media', 'relation', 'oembed', 'color', 'link', or 'text')
+	// Determine effective display mode ('media', 'relation', 'oembed', 'color', 'social', 'link', or 'text')
 	let effectiveMode = 'text';
 	if ( displayAs && displayAs !== 'auto' ) {
 		effectiveMode = displayAs;
@@ -208,13 +213,20 @@ export default function Edit( { attributes, setAttributes, context } ) {
 											value: 'auto',
 										},
 										{ label: __( 'Media (Image / Video / Audio)', 'pods-block-suite' ), value: 'media' },
+										{ label: __( 'Social Icons (Auto-detect platform)', 'pods-block-suite' ), value: 'social' },
 										{ label: __( 'oEmbed (YouTube / Vimeo / Embed)', 'pods-block-suite' ), value: 'oembed' },
 										{ label: __( 'Color Swatch (Square / Circle)', 'pods-block-suite' ), value: 'color' },
 										{ label: __( 'Related Post (Link / List)', 'pods-block-suite' ), value: 'relation' },
 										{ label: __( 'Website URL (Link)', 'pods-block-suite' ), value: 'link' },
 										{ label: __( 'Plain Text / HTML', 'pods-block-suite' ), value: 'text' },
 									] }
-									onChange={ ( val ) => setAttributes( { displayAs: val } ) }
+									onChange={ ( val ) => {
+										const updates = { displayAs: val };
+										if ( val === 'social' && layoutMode === 'column' ) {
+											updates.layoutMode = 'row';
+										}
+										setAttributes( updates );
+									} }
 								/>
 							) }
 						</>
@@ -250,6 +262,51 @@ export default function Edit( { attributes, setAttributes, context } ) {
 									) }
 									checked={ linkToMedia }
 									onChange={ ( val ) => setAttributes( { linkToMedia: val } ) }
+								/>
+							</>
+						) }
+
+						{/* SOCIAL ICONS SETTINGS */}
+						{ effectiveMode === 'social' && (
+							<>
+								<SelectControl
+									label={ __( 'Icon Color Style', 'pods-block-suite' ) }
+									help={ __(
+										'Use official brand colors or inherit the block text color.',
+										'pods-block-suite'
+									) }
+									value={ socialColorMode }
+									options={ [
+										{ label: __( 'Brand Colors', 'pods-block-suite' ), value: 'brand' },
+										{ label: __( 'Inherit Block Text Color', 'pods-block-suite' ), value: 'inherit' },
+									] }
+									onChange={ ( val ) => setAttributes( { socialColorMode: val } ) }
+								/>
+
+								<RangeControl
+									label={ __( 'Icon Size (px)', 'pods-block-suite' ) }
+									value={ socialSize }
+									onChange={ ( val ) => setAttributes( { socialSize: val } ) }
+									min={ 20 }
+									max={ 72 }
+								/>
+
+								<RangeControl
+									label={ __( 'Corner Radius (%)', 'pods-block-suite' ) }
+									help={ __(
+										'0% = Square, 20% = Rounded Square, 50% = Circle.',
+										'pods-block-suite'
+									) }
+									value={ socialBorderRadius }
+									onChange={ ( val ) => setAttributes( { socialBorderRadius: val } ) }
+									min={ 0 }
+									max={ 50 }
+								/>
+
+								<CheckboxControl
+									label={ __( 'Open in new tab (target="_blank")', 'pods-block-suite' ) }
+									checked={ linkNewTab }
+									onChange={ ( val ) => setAttributes( { linkNewTab: val } ) }
 								/>
 							</>
 						) }
@@ -369,23 +426,53 @@ export default function Edit( { attributes, setAttributes, context } ) {
 							</>
 						) }
 
-						{/* LAYOUT MODE FOR REPEATED MEDIA OR ONE-TO-MANY RELATIONS */}
-						{ ( effectiveMode === 'media' || effectiveMode === 'relation' ) && (
-							<SelectControl
-								label={ __( 'Multi-item Layout', 'pods-block-suite' ) }
-								help={ __(
-									'Controls how repeated images or multiple related posts are arranged.',
-									'pods-block-suite'
+						{/* MULTI-ITEM LIMIT & LAYOUT FOR REPEATED MEDIA, RELATIONS, OR SOCIAL ICONS */}
+						{ ( effectiveMode === 'media' || effectiveMode === 'relation' || effectiveMode === 'social' ) && (
+							<>
+								<RangeControl
+									label={ __( 'Max Items to Display (0 = Unlimited)', 'pods-block-suite' ) }
+									help={ __(
+										'Limits how many repeated or related items are shown.',
+										'pods-block-suite'
+									) }
+									value={ limit }
+									onChange={ ( val ) => setAttributes( { limit: val } ) }
+									min={ 0 }
+									max={ 50 }
+								/>
+
+								<SelectControl
+									label={ __( 'Multi-item Layout', 'pods-block-suite' ) }
+									help={ __(
+										'Controls how repeated items or multiple related posts are arranged.',
+										'pods-block-suite'
+									) }
+									value={ layoutMode }
+									options={ [
+										{ label: __( 'Flexbox: Row (horizontal)', 'pods-block-suite' ), value: 'row' },
+										{ label: __( 'Flexbox: Column (vertical)', 'pods-block-suite' ), value: 'column' },
+										{ label: __( 'Unordered List (<ul>)', 'pods-block-suite' ), value: 'ul' },
+										{ label: __( 'Ordered List (<ol>)', 'pods-block-suite' ), value: 'ol' },
+									] }
+									onChange={ ( val ) => setAttributes( { layoutMode: val } ) }
+								/>
+
+								{ ( layoutMode === 'row' || layoutMode === 'column' ) && (
+									<SelectControl
+										label={ __( 'Justify Content', 'pods-block-suite' ) }
+										value={ justifyContent }
+										options={ [
+											{ label: __( 'Center (center)', 'pods-block-suite' ), value: 'center' },
+											{ label: __( 'Start / Left (flex-start)', 'pods-block-suite' ), value: 'flex-start' },
+											{ label: __( 'End / Right (flex-end)', 'pods-block-suite' ), value: 'flex-end' },
+											{ label: __( 'Space Between (space-between)', 'pods-block-suite' ), value: 'space-between' },
+											{ label: __( 'Space Around (space-around)', 'pods-block-suite' ), value: 'space-around' },
+											{ label: __( 'Space Evenly (space-evenly)', 'pods-block-suite' ), value: 'space-evenly' },
+										] }
+										onChange={ ( val ) => setAttributes( { justifyContent: val } ) }
+									/>
 								) }
-								value={ layoutMode }
-								options={ [
-									{ label: __( 'Flexbox: Column (vertical)', 'pods-block-suite' ), value: 'column' },
-									{ label: __( 'Flexbox: Row (horizontal)', 'pods-block-suite' ), value: 'row' },
-									{ label: __( 'Unordered List (<ul>)', 'pods-block-suite' ), value: 'ul' },
-									{ label: __( 'Ordered List (<ol>)', 'pods-block-suite' ), value: 'ol' },
-								] }
-								onChange={ ( val ) => setAttributes( { layoutMode: val } ) }
-							/>
+							</>
 						) }
 
 						{/* TEXT / HTML WRAPPER TAG SETTINGS */}

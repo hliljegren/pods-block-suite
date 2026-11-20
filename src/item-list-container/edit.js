@@ -27,6 +27,7 @@ export default function Edit( { attributes, setAttributes } ) {
 		filterFields,
 		enableSearch,
 		flexDirection,
+		justifyContent,
 		columns,
 		linkToPost,
 	} = attributes;
@@ -57,6 +58,14 @@ export default function Edit( { attributes, setAttributes } ) {
 
 	const activePodData = schema && selectedPod ? schema[ selectedPod ] : null;
 	const availableFields = activePodData ? activePodData.fields : [];
+	const sortablePodsFields = availableFields.filter( ( f ) => f.sortable !== false );
+	const sortableWpFields = activePodData
+		? activePodData.standardFields.filter( ( f ) => f.sortable !== false )
+		: [];
+
+	// Normalize legacy 't.post_date' values to 'post_date'
+	const normalizedOrderBy = orderBy ? orderBy.replace( /^t\./, '' ) : 'post_date';
+	const isRandomSort = orderDir === 'RAND' || orderBy === 'RAND()';
 
 	const podOptions = [
 		{ label: __( '— Select POD —', 'pods-block-suite' ), value: '' },
@@ -121,6 +130,7 @@ export default function Edit( { attributes, setAttributes } ) {
 								setAttributes( {
 									selectedPod: val,
 									filterFields: [],
+									orderBy: 'post_date',
 								} );
 							} }
 						/>
@@ -141,27 +151,65 @@ export default function Edit( { attributes, setAttributes } ) {
 					/>
 
 					<SelectControl
-						label={ __( 'Order By', 'pods-block-suite' ) }
-						value={ orderBy }
+						label={ __( 'Sort Direction', 'pods-block-suite' ) }
+						value={ isRandomSort ? 'RAND' : orderDir }
 						options={ [
-							{ label: __( 'Publish Date (t.post_date)', 'pods-block-suite' ), value: 't.post_date' },
-							{ label: __( 'Title (t.post_title)', 'pods-block-suite' ), value: 't.post_title' },
-							{ label: __( 'Menu Order (t.menu_order)', 'pods-block-suite' ), value: 't.menu_order' },
-							{ label: __( 'Post ID (t.ID)', 'pods-block-suite' ), value: 't.ID' },
-							{ label: __( 'Random (RAND())', 'pods-block-suite' ), value: 'RAND()' },
+							{ label: __( 'Descending (DESC / Newest or Z–A)', 'pods-block-suite' ), value: 'DESC' },
+							{ label: __( 'Ascending (ASC / Oldest or A–Z)', 'pods-block-suite' ), value: 'ASC' },
+							{ label: __( 'Random Order (RAND)', 'pods-block-suite' ), value: 'RAND' },
 						] }
-						onChange={ ( val ) => setAttributes( { orderBy: val } ) }
+						onChange={ ( val ) => {
+							const updates = { orderDir: val };
+							if ( val !== 'RAND' && orderBy === 'RAND()' ) {
+								updates.orderBy = 'post_date';
+							}
+							setAttributes( updates );
+						} }
 					/>
 
-					<SelectControl
-						label={ __( 'Sort Direction', 'pods-block-suite' ) }
-						value={ orderDir }
-						options={ [
-							{ label: __( 'Descending (DESC / Newest first)', 'pods-block-suite' ), value: 'DESC' },
-							{ label: __( 'Ascending (ASC / A–Z)', 'pods-block-suite' ), value: 'ASC' },
-						] }
-						onChange={ ( val ) => setAttributes( { orderDir: val } ) }
-					/>
+					{ ! isRandomSort && (
+						<div className="components-base-control">
+							<label
+								className="components-base-control__label"
+								htmlFor="pods-list-orderby-select"
+								style={ { display: 'block', marginBottom: '6px' } }
+							>
+								{ __( 'Order By', 'pods-block-suite' ) }
+							</label>
+							<select
+								id="pods-list-orderby-select"
+								className="components-select-control__input"
+								style={ { width: '100%', height: '36px' } }
+								value={ normalizedOrderBy }
+								onChange={ ( e ) => setAttributes( { orderBy: e.target.value } ) }
+							>
+								<optgroup label={ __( 'WordPress Standard Fields', 'pods-block-suite' ) }>
+									{ sortableWpFields.length > 0 ? (
+										sortableWpFields.map( ( f ) => (
+											<option key={ f.name } value={ f.name }>
+												{ f.label }
+											</option>
+										) )
+									) : (
+										<>
+											<option value="post_date">{ __( 'Publish Date (post_date)', 'pods-block-suite' ) }</option>
+											<option value="post_title">{ __( 'Post Title (post_title)', 'pods-block-suite' ) }</option>
+											<option value="ID">{ __( 'Post ID (ID)', 'pods-block-suite' ) }</option>
+										</>
+									) }
+								</optgroup>
+								{ sortablePodsFields.length > 0 && (
+									<optgroup label={ __( 'PODS Fields', 'pods-block-suite' ) }>
+										{ sortablePodsFields.map( ( f ) => (
+											<option key={ f.name } value={ f.name }>
+												{ f.label } [{ f.type }]
+											</option>
+										) ) }
+									</optgroup>
+								) }
+							</select>
+						</div>
+					) }
 
 					<CheckboxControl
 						label={ __( 'Enable Pagination', 'pods-block-suite' ) }
@@ -240,6 +288,24 @@ export default function Edit( { attributes, setAttributes } ) {
 							{ label: __( 'Column (vertical)', 'pods-block-suite' ), value: 'column' },
 						] }
 						onChange={ ( val ) => setAttributes( { flexDirection: val } ) }
+					/>
+
+					<SelectControl
+						label={ __( 'Justify Content', 'pods-block-suite' ) }
+						help={ __(
+							'Controls how items are aligned and distributed along the flex axis.',
+							'pods-block-suite'
+						) }
+						value={ justifyContent }
+						options={ [
+							{ label: __( 'Center (center)', 'pods-block-suite' ), value: 'center' },
+							{ label: __( 'Start / Left (flex-start)', 'pods-block-suite' ), value: 'flex-start' },
+							{ label: __( 'End / Right (flex-end)', 'pods-block-suite' ), value: 'flex-end' },
+							{ label: __( 'Space Between (space-between)', 'pods-block-suite' ), value: 'space-between' },
+							{ label: __( 'Space Around (space-around)', 'pods-block-suite' ), value: 'space-around' },
+							{ label: __( 'Space Evenly (space-evenly)', 'pods-block-suite' ), value: 'space-evenly' },
+						] }
+						onChange={ ( val ) => setAttributes( { justifyContent: val } ) }
 					/>
 
 					{ flexDirection === 'row' && (

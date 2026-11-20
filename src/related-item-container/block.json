@@ -2,23 +2,47 @@
 	"$schema": "https://schemas.wp.org/trunk/block.json",
 	"apiVersion": 3,
 	"name": "pods-block-suite/related-item-container",
-	"version": "1.0.0",
+	"version": "1.1.0",
 	"title": "PODS Related Item Container",
 	"category": "widgets",
 	"icon": "networking",
 	"description": "Loops through a related PODS field (single or one-to-many) and renders each item in a flexible layout or as clickable cards.",
 	"attributes": {
+		"selectedPod": {
+			"type": "string",
+			"default": ""
+		},
+		"relationshipField": {
+			"type": "string",
+			"default": ""
+		},
 		"relationField": {
 			"type": "string",
 			"default": ""
+		},
+		"limit": {
+			"type": "number",
+			"default": 0
 		},
 		"maxItems": {
 			"type": "number",
 			"default": 0
 		},
+		"orderBy": {
+			"type": "string",
+			"default": "post_date"
+		},
+		"orderDir": {
+			"type": "string",
+			"default": "DESC"
+		},
 		"flexDirection": {
 			"type": "string",
 			"default": "column"
+		},
+		"justifyContent": {
+			"type": "string",
+			"default": "center"
 		},
 		"columns": {
 			"type": "number",
