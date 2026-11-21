@@ -1,0 +1,87 @@
+/**
+ * Shared Flexbox multi-column layout and clickable card mixin
+ * for PODS Item List Container and PODS Related Item Container.
+ *
+ * @param {String} $grid-selector Selector for the inner flex container (e.g. '.pods-related-items-grid').
+ * @param {String} $item-selector Selector for each rendered item card (e.g. '.pods-related-item').
+ * @param {String} $link-selector Selector for clickable card anchors (e.g. 'a.pods-related-item-link').
+ * @param {String} $flow-class    Optional WordPress FSE flow layout class on the block wrapper.
+ */
+@mixin pods-flex-container(
+	$grid-selector,
+	$item-selector,
+	$link-selector,
+	$flow-class: null
+) {
+	--pods-columns: 3;
+	--pods-gap: 1.5rem;
+	width: 100%;
+
+	// Neutralize WordPress FSE flow layout top-margin on 2nd+ items
+	@if $flow-class {
+		&.#{$flow-class} > * {
+			margin-block-start: 0;
+			margin-block-end: 0;
+		}
+	}
+
+	#{$grid-selector} > #{$item-selector} {
+		margin-block-start: 0;
+		margin-block-end: 0;
+	}
+
+	#{$grid-selector} {
+		display: flex;
+		width: 100%;
+		gap: var(--pods-gap, 1.5rem);
+		justify-content: var(--pods-justify-content, center);
+
+		&.is-direction-column {
+			flex-direction: column;
+
+			#{$item-selector} {
+				width: 100%;
+			}
+		}
+
+		&.is-direction-row {
+			flex-direction: row;
+			flex-wrap: wrap;
+			align-items: stretch;
+
+			#{$item-selector} {
+				box-sizing: border-box;
+				flex: 0 0 calc((100% - (var(--pods-columns) - 1) * var(--pods-gap, 1.5rem)) / var(--pods-columns));
+				max-width: calc((100% - (var(--pods-columns) - 1) * var(--pods-gap, 1.5rem)) / var(--pods-columns));
+			}
+
+			@media (max-width: 900px) {
+				#{$item-selector} {
+					flex: 0 0 calc((100% - var(--pods-gap, 1.5rem)) / 2);
+					max-width: calc((100% - var(--pods-gap, 1.5rem)) / 2);
+				}
+			}
+
+			@media (max-width: 600px) {
+				#{$item-selector} {
+					flex: 0 0 100%;
+					max-width: 100%;
+				}
+			}
+		}
+
+		#{$link-selector} {
+			display: block;
+			text-decoration: none;
+			color: inherit;
+			cursor: pointer;
+			transition: transform 0.15s ease, opacity 0.15s ease;
+
+			&:hover,
+			&:focus-visible {
+				transform: translateY(-2px);
+				opacity: 0.92;
+			}
+		}
+	}
+}

@@ -9,9 +9,9 @@ import {
 	Placeholder,
 	Spinner,
 } from '@wordpress/components';
-import { useState, useEffect } from '@wordpress/element';
-import apiFetch from '@wordpress/api-fetch';
+import { useCallback } from '@wordpress/element';
 import ServerSideRender from '@wordpress/server-side-render';
+import { usePodsSchema } from '../shared/hooks/usePodsSchema';
 import metadata from './block.json';
 
 export default function Edit( { attributes, setAttributes, context } ) {
@@ -38,42 +38,23 @@ export default function Edit( { attributes, setAttributes, context } ) {
 		htmlTag,
 	} = attributes;
 
-	const [ schema, setSchema ] = useState( null );
-	const [ isLoadingSchema, setIsLoadingSchema ] = useState( true );
-
 	const blockProps = useBlockProps();
 
-	// 1. Fetch the PODS schema once when the block mounts in the editor
-	useEffect( () => {
-		let isMounted = true;
-		apiFetch( { path: '/pods-block-suite/v1/schema' } )
-			.then( ( data ) => {
-				if ( isMounted ) {
-					setSchema( data || {} );
-					setIsLoadingSchema( false );
-				}
-			} )
-			.catch( () => {
-				if ( isMounted ) {
-					setSchema( {} );
-					setIsLoadingSchema( false );
-				}
-			} );
+	const handleAutoSelectPod = useCallback(
+		( podSlug ) => {
+			setAttributes( { selectedPod: podSlug } );
+		},
+		[ setAttributes ]
+	);
 
-		return () => {
-			isMounted = false;
-		};
-	}, [] );
+	// 1. Fetch schema & handle context auto-selection via shared hook
+	const { schema, isLoadingSchema, podOptions, activePodData } = usePodsSchema( {
+		selectedPod,
+		contextPostType: context.postType,
+		onAutoSelectPod: handleAutoSelectPod,
+	} );
 
-	// 2. Automatically pre-select POD based on block context
-	useEffect( () => {
-		if ( schema && ! selectedPod && context.postType && schema[ context.postType ] ) {
-			setAttributes( { selectedPod: context.postType } );
-		}
-	}, [ schema, selectedPod, context.postType ] );
-
-	// 3. Resolve active POD data and selected field metadata
-	const activePodData = schema && selectedPod ? schema[ selectedPod ] : null;
+	// 2. Resolve selected field metadata
 	const allFieldsForPod = activePodData
 		? [ ...activePodData.fields, ...activePodData.standardFields ]
 		: [];
@@ -100,22 +81,17 @@ export default function Edit( { attributes, setAttributes, context } ) {
 		}
 	}
 
+	// Only show multi-item controls when both the display mode and the field configuration support multiple items
+	const isMultiMode = [ 'media', 'relation', 'social' ].includes( effectiveMode );
+	const isMultiValueField = currentFieldMeta ? Boolean( currentFieldMeta.isMultiple ) : true;
+	const showMultiItemControls = isMultiMode && isMultiValueField;
+
 	// Retrieve fields from the target POD when a relationship field is selected
 	const relatedPodSlug = currentFieldMeta?.relatedPod || '';
-	const relatedPodData = schema && relatedPodSlug ? schema[ relatedPodSlug ] : null;
+	const relatedPodData = schema && relatedPodSlug ? schema[ relatedPodSlug ] || null : null;
 	const relatedFieldsList = relatedPodData
 		? [ ...relatedPodData.standardFields, ...relatedPodData.fields ]
 		: [];
-
-	const podOptions = [
-		{ label: __( '— Select POD —', 'pods-block-suite' ), value: '' },
-		...( schema
-			? Object.values( schema ).map( ( pod ) => ( {
-					label: pod.label,
-					value: pod.name,
-			  } ) )
-			: [] ),
-	];
 
 	return (
 		<>
@@ -426,8 +402,8 @@ export default function Edit( { attributes, setAttributes, context } ) {
 							</>
 						) }
 
-						{/* MULTI-ITEM LIMIT & LAYOUT FOR REPEATED MEDIA, RELATIONS, OR SOCIAL ICONS */}
-						{ ( effectiveMode === 'media' || effectiveMode === 'relation' || effectiveMode === 'social' ) && (
+						{/* MULTI-ITEM LIMIT & LAYOUT (ONLY SHOWN FOR REPEATABLE / MULTI-VALUE FIELDS) */}
+						{ showMultiItemControls && (
 							<>
 								<RangeControl
 									label={ __( 'Max Items to Display (0 = Unlimited)', 'pods-block-suite' ) }

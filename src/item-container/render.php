@@ -3,42 +3,64 @@
  * Renders the PODS Item Container block on the frontend.
  *
  * @var array    $attributes Saved block attributes.
- * @var string   $content    Pre-rendered inner blocks HTML (fallback).
- * @var WP_Block $block      Full block instance including context and inner blocks.
+ * @var string   $content    Fallback inner content.
+ * @var WP_Block $block      Full block instance.
  */
 
-// Use custom Post ID if set, otherwise fall back to current context/post
-$custom_post_id = isset( $attributes['customPostId'] ) ? absint( $attributes['customPostId'] ) : 0;
-$target_post_id = $custom_post_id > 0 ? $custom_post_id : ( $block->context['postId'] ?? get_the_ID() );
-
-// Retrieve the actual post_type for the target Post ID
-$target_post_type = $target_post_id ? get_post_type( $target_post_id ) : ( $block->context['postType'] ?? 'post' );
-
-if ( ! $target_post_id || ! $target_post_type ) {
+if ( ! function_exists( 'pods' ) ) {
 	return;
 }
 
-// Render each inner block with overridden postId and postType context
-$inner_blocks_html = '';
-if ( ! empty( $block->inner_blocks ) ) {
-	foreach ( $block->inner_blocks as $inner_block ) {
-		$new_context = array_merge(
-			$inner_block->context,
-			array(
-				'postId'   => $target_post_id,
-				'postType' => $target_post_type,
-			)
-		);
+$raw_manual_id  = isset( $attributes['customPostId'] ) && $attributes['customPostId'] > 0
+	? $attributes['customPostId']
+	: ( $attributes['postId'] ?? 0 );
+$manual_post_id = absint( $raw_manual_id );
+$link_to_post   = ! empty( $attributes['linkToPost'] );
 
-		$contextual_block   = new WP_Block( $inner_block->parsed_block, $new_context );
-		$inner_blocks_html .= $contextual_block->render();
-	}
+// Resolve target post ID (manual override takes precedence over page/loop context)
+$target_id = $manual_post_id > 0
+	? $manual_post_id
+	: ( $block->context['postId'] ?? get_the_ID() );
+
+if ( ! $target_id ) {
+	return;
 }
 
-$wrapper_attributes = get_block_wrapper_attributes();
+$target_post = get_post( $target_id );
+if ( ! $target_post ) {
+	return;
+}
+
+$target_type = $target_post->post_type;
+
+// Render all inner blocks within the resolved post context using our shared helper
+$inner_html = pods_block_suite_render_contextual_inner_blocks( $block, $target_id, $target_type );
+
+if ( empty( $inner_html ) ) {
+	return;
+}
+
+$wrapper_attributes = get_block_wrapper_attributes(
+	array(
+		'class' => 'pods-item-container',
+	)
+);
+
+if ( $link_to_post ) {
+	$permalink = get_permalink( $target_id );
+	if ( $permalink ) {
+		printf(
+			'<div %1$s><a href="%2$s" class="pods-item-container-link">%3$s</a></div>',
+			$wrapper_attributes,
+			esc_url( $permalink ),
+			$inner_html
+		);
+		return;
+	}
+}
 
 printf(
 	'<div %1$s>%2$s</div>',
 	$wrapper_attributes,
-	$inner_blocks_html
+	$inner_html
 );

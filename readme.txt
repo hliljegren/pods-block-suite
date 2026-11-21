@@ -4,7 +4,7 @@ Tags:              pods, gutenberg, blocks, custom-fields, dynamic-content
 Requires at least: 6.5
 Tested up to:      6.7
 Requires PHP:      7.4
-Stable tag:        1.0.0
+Stable tag:        1.1.0
 License:           GPL-2.0-or-later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -72,3 +72,11 @@ Yes. All interface strings use the `pods-block-suite` text domain and `@wordpres
 * Added **PODS Smart Field** block supporting Media, oEmbed, Color Swatches, Relationships, Links, and WordPress standard fields.
 * Added REST API endpoint (`/wp-json/pods-block-suite/v1/schema`) for live POD and field discovery in the Block Editor.
 * Full internationalization (i18n) support under the `pods-block-suite` text domain.
+
+= 1.1.0 =
+* Added PODS Framework dependency check with an admin error notice and `Requires Plugins: pods` header.
+* Added **Social Icons** display mode to **PODS Smart Field** with automatic platform detection, brand/inherit color styles, icon size, and border-radius controls.
+* Added **Max Items** (`limit`) control to **PODS Smart Field** for repeatable fields, media galleries, and relationships.
+* Added dynamic **Order By** (supporting PODS numeric/text fields and post-type-supported WordPress fields) and **Sort Direction** (`DESC`, `ASC`, `RAND`) to both **PODS Item List Container** and **PODS Related Item Container**.
+* Added Flexbox **Justify Content** alignment and full-width responsive grid handling across container and field blocks.
+* Fixed FSE `is-layout-flow` top margin alignment issues on multi-column grids.

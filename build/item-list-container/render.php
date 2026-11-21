@@ -11,7 +11,7 @@ if ( ! function_exists( 'pods' ) ) {
 	return;
 }
 
-global $wpdb, $post;
+global $wpdb;
 
 $selected_pod      = isset( $attributes['selectedPod'] ) ? sanitize_key( $attributes['selectedPod'] ) : '';
 $limit             = isset( $attributes['limit'] ) ? intval( $attributes['limit'] ) : 12;
@@ -21,12 +21,12 @@ $order_dir         = in_array( $raw_order_dir, array( 'ASC', 'DESC', 'RAND' ), t
 $enable_pagination = isset( $attributes['enablePagination'] ) ? (bool) $attributes['enablePagination'] : true;
 $filter_fields     = isset( $attributes['filterFields'] ) && is_array( $attributes['filterFields'] ) ? array_map( 'sanitize_key', $attributes['filterFields'] ) : array();
 $enable_search     = ! empty( $attributes['enableSearch'] );
-$flex_direction    = isset( $attributes['flexDirection'] ) && 'column' === $attributes['flexDirection'] ? 'column' : 'row';
-$allowed_justify   = array( 'flex-start', 'center', 'flex-end', 'space-between', 'space-around', 'space-evenly' );
-$raw_justify       = isset( $attributes['justifyContent'] ) ? sanitize_key( $attributes['justifyContent'] ) : 'center';
-$justify_content   = in_array( $raw_justify, $allowed_justify, true ) ? $raw_justify : 'center';
-$columns           = isset( $attributes['columns'] ) ? max( 1, min( 6, absint( $attributes['columns'] ) ) ) : 3;
-$link_to_post      = ! empty( $attributes['linkToPost'] );
+
+$layout          = pods_block_suite_sanitize_layout_attributes( $attributes, 'row' );
+$flex_direction  = $layout['flex_direction'];
+$justify_content = $layout['justify_content'];
+$columns         = $layout['columns'];
+$link_to_post    = $layout['link_to_post'];
 
 if ( empty( $selected_pod ) ) {
 	return;
@@ -138,17 +138,14 @@ if ( 'RAND' === $order_dir || 'RAND()' === $order_by ) {
 	$orderby_sql = "{$wp_standard_map[ $clean_order_by ]} {$order_dir}";
 } else {
 	$sort_field_slug = sanitize_key( $clean_order_by );
-	$sort_field_obj  = $pod->fields( $sort_field_slug );
+	$sort_field_type = pods_block_suite_get_field_type( $pod, $sort_field_slug );
 
-	if ( $sort_field_obj ) {
-		$sort_field_type = is_object( $sort_field_obj ) && method_exists( $sort_field_obj, 'get_type' )
-			? $sort_field_obj->get_type()
-			: ( $sort_field_obj['type'] ?? 'text' );
-
+	if ( '' !== $sort_field_type ) {
 		if ( in_array( $sort_field_type, array( 'number', 'currency' ), true ) ) {
 			$orderby_sql = "CAST( {$sort_field_slug}.meta_value AS DECIMAL(12,2) ) {$order_dir}";
 		} elseif ( 'pick' === $sort_field_type ) {
-			$pick_obj = is_object( $sort_field_obj ) ? $sort_field_obj->get_arg( 'pick_object', '' ) : ( $sort_field_obj['pick_object'] ?? '' );
+			$sort_field_obj = $pod->fields( $sort_field_slug );
+			$pick_obj       = is_object( $sort_field_obj ) ? $sort_field_obj->get_arg( 'pick_object', '' ) : ( $sort_field_obj['pick_object'] ?? '' );
 			if ( in_array( $pick_obj, array( 'post_type', 'taxonomy', 'user' ), true ) ) {
 				$orderby_sql = "{$sort_field_slug}.post_title {$order_dir}";
 			} else {
@@ -361,46 +358,16 @@ if ( ! empty( $filter_fields ) || $enable_search ) {
 }
 
 // 4. LOOP THROUGH MATCHING POD ITEMS AND RENDER INNER BLOCKS
-$items_html    = '';
-$original_post = $post;
+$items_html = '';
 
 if ( $pod->total() > 0 ) {
 	while ( $pod->fetch() ) {
-		$item_id        = absint( $pod->id() );
-		$item_post_type = get_post_type( $item_id ) ?: $selected_pod;
-
-		// Set global postdata if this is a standard WP post type
-		$post_obj = get_post( $item_id );
-		if ( $post_obj ) {
-			$post = $post_obj;
-			setup_postdata( $post );
+		$item_id = absint( $pod->id() );
+		if ( ! $item_id ) {
+			continue;
 		}
 
-		// Inject postId and postType into ALL nested inner blocks via render_block_context
-		$context_filter = static function ( $context ) use ( $item_id, $item_post_type ) {
-			$context['postId']   = $item_id;
-			$context['postType'] = $item_post_type;
-			return $context;
-		};
-
-		add_filter( 'render_block_context', $context_filter, 10, 1 );
-
-		$single_item_html = '';
-		if ( ! empty( $block->inner_blocks ) ) {
-			foreach ( $block->inner_blocks as $inner_block ) {
-				// Re-instantiate WP_Block so render_block_context runs for it and all nested children
-				$contextual_block  = new WP_Block(
-					$inner_block->parsed_block,
-					array(
-						'postId'   => $item_id,
-						'postType' => $item_post_type,
-					)
-				);
-				$single_item_html .= $contextual_block->render();
-			}
-		}
-
-		remove_filter( 'render_block_context', $context_filter, 10 );
+		$single_item_html = pods_block_suite_render_contextual_inner_blocks( $block, $item_id, $selected_pod );
 
 		if ( ! empty( $single_item_html ) ) {
 			$permalink = $link_to_post ? get_permalink( $item_id ) : '';
@@ -419,14 +386,6 @@ if ( $pod->total() > 0 ) {
 				);
 			}
 		}
-	}
-
-	// Restore original global $post
-	$post = $original_post;
-	if ( $original_post ) {
-		setup_postdata( $original_post );
-	} else {
-		wp_reset_postdata();
 	}
 } else {
 	$items_html = '<p class="pods-list-empty">' . esc_html__( 'No items matched your filter criteria.', 'pods-block-suite' ) . '</p>';

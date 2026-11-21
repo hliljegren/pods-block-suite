@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       PODS Block Suite
  * Description:       A comprehensive suite of Gutenberg blocks for PODS (Item Container, Related Item Container, Item List Container, and Smart Field).
- * Version:           1.1.0
+ * Version:           1.2.0
  * Requires at least: 6.5
  * Requires PHP:      7.4
  * Requires Plugins:  pods
@@ -13,6 +13,8 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
+
+require_once plugin_dir_path( __FILE__ ) . 'includes/render-helpers.php';
 
 /**
  * Checks whether the PODS Framework plugin is installed and active.
@@ -129,6 +131,23 @@ function pods_block_suite_get_schema() {
 						: ( $field_data['pick_val'] ?? '' );
 				}
 
+				// Determine if this field can store multiple values (repeatable, gallery, or multi-select relationship)
+				$is_repeatable = is_object( $field_data )
+					? (bool) $field_data->get_arg( 'repeatable', false )
+					: ! empty( $field_data['repeatable'] );
+
+				$file_format = is_object( $field_data )
+					? $field_data->get_arg( 'file_format_type', 'single' )
+					: ( $field_data['file_format_type'] ?? 'single' );
+
+				$pick_format = is_object( $field_data )
+					? $field_data->get_arg( 'pick_format_type', 'single' )
+					: ( $field_data['pick_format_type'] ?? 'single' );
+
+				$is_multiple = $is_repeatable
+					|| ( in_array( $f_type, array( 'file', 'media', 'avatar' ), true ) && 'multi' === $file_format )
+					|| ( 'pick' === $f_type && 'multi' === $pick_format );
+
 				// Exclude non-sortable multi-object / media / password types from Order By
 				$is_sortable = ! in_array( $f_type, array( 'file', 'media', 'avatar', 'password' ), true );
 
@@ -139,6 +158,7 @@ function pods_block_suite_get_schema() {
 					'group'      => 'pods',
 					'relatedPod' => $related_pod,
 					'sortable'   => $is_sortable,
+					'isMultiple' => $is_multiple,
 				);
 			}
 		}

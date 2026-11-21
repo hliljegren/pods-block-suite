@@ -5,7 +5,7 @@ return array(
 		'$schema' => 'https://schemas.wp.org/trunk/block.json',
 		'apiVersion' => 3,
 		'name' => 'pods-block-suite/item-container',
-		'version' => '1.0.0',
+		'version' => '1.2.0',
 		'title' => 'PODS Item Container',
 		'category' => 'widgets',
 		'icon' => 'database',
@@ -18,6 +18,10 @@ return array(
 			'resolvedPostType' => array(
 				'type' => 'string',
 				'default' => ''
+			),
+			'linkToPost' => array(
+				'type' => 'boolean',
+				'default' => false
 			)
 		),
 		'usesContext' => array(

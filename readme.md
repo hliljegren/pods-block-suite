@@ -30,6 +30,15 @@ A context-aware field block with dynamic POD and field dropdowns (including Word
 * **Relationships:** Single or multi-item links/lists displaying any chosen field from the related post.
 * **Multi-item Controls:** Optional `Max Items` limit (`0 = unlimited`), layout modes (`row`, `column`, `ul`, `ol`), and Flexbox `justify-content` alignment.
 * **URLs & Text:** Clickable links (with custom label and `target="_blank"` options) or semantic HTML text wrappers (`<div>`, `<p>`, `<h2>`, `<h3>`, `<span>`).
+
+## Architecture & Shared Modules (v1.2.0+)
+To keep the codebase DRY and maintainable across all blocks, shared logic is organized under `src/shared/` and `includes/`:
+* **`src/shared/hooks/usePodsSchema.js`:** Fetches and caches the `/pods-block-suite/v1/schema` endpoint, auto-selects context PODs, and formats dropdown options.
+* **`src/shared/components/SortControls.js`:** Shared `Sort Direction` (`DESC`, `ASC`, `RAND`) and grouped `Order By` selector.
+* **`src/shared/components/LayoutControls.js`:** Shared Flexbox layout (`row`/`column`, `justify-content`, `columns`) and clickable card (`linkToPost`) inspector controls.
+* **`src/shared/styles/_flex-layout.scss`:** Shared Dart Sass mixin (`@include pods-flex-container(...)`) for responsive multi-column Flexbox grids and FSE margin normalization.
+* **`includes/render-helpers.php`:** Server-side helpers for layout attribute sanitization, PODS field type resolution, and `WP_Block` contextual rendering (`pods_block_suite_render_contextual_inner_blocks()`).
+
 ## Installation
 
 ### Standard WordPress Installation

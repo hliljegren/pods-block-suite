@@ -117,6 +117,9 @@ if ( is_array( $field_info ) && isset( $field_info['type'] ) ) {
 	}
 }
 
+// 3. Detect field type via shared helper and determine the effective display mode
+$field_type = ( $pod && $pod->exists() ) ? pods_block_suite_get_field_type( $pod, $field_name ) : '';
+
 $effective_mode = 'text';
 if ( 'auto' !== $display_as && in_array( $display_as, array( 'media', 'social', 'oembed', 'color', 'relation', 'link', 'text' ), true ) ) {
 	$effective_mode = $display_as;

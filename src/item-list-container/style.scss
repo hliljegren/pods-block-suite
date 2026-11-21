@@ -1,4 +1,12 @@
+@use '../shared/styles/flex-layout' as flex;
+
 .wp-block-pods-block-suite-item-list-container {
+	@include flex.pods-flex-container(
+		'.pods-item-list-grid',
+		'.pods-list-item',
+		'a.pods-list-item-link',
+		'wp-block-pods-block-suite-item-list-container-is-layout-flow'
+	);
 	--pods-gap: 1.5rem;
 	--pods-columns: 3;
 	width: 100%;

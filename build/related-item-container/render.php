@@ -11,8 +11,6 @@ if ( ! function_exists( 'pods' ) ) {
 	return;
 }
 
-global $post;
-
 $raw_rel_field      = ! empty( $attributes['relationshipField'] ) ? $attributes['relationshipField'] : ( $attributes['relationField'] ?? '' );
 $relationship_field = sanitize_key( $raw_rel_field );
 $raw_limit          = isset( $attributes['limit'] ) && $attributes['limit'] > 0 ? $attributes['limit'] : ( $attributes['maxItems'] ?? 0 );
@@ -20,11 +18,12 @@ $limit              = absint( $raw_limit );
 $order_by           = isset( $attributes['orderBy'] ) ? sanitize_text_field( $attributes['orderBy'] ) : 'post_date';
 $raw_order_dir      = isset( $attributes['orderDir'] ) ? strtoupper( $attributes['orderDir'] ) : 'DESC';
 $order_dir          = in_array( $raw_order_dir, array( 'ASC', 'DESC', 'RAND' ), true ) ? $raw_order_dir : 'DESC';
-$flex_direction     = isset( $attributes['flexDirection'] ) && 'column' === $attributes['flexDirection'] ? 'column' : 'row';
-$allowed_justify    = array( 'flex-start', 'center', 'flex-end', 'space-between', 'space-around', 'space-evenly' );
-$raw_justify        = isset( $attributes['justifyContent'] ) ? sanitize_key( $attributes['justifyContent'] ) : 'center';
-$justify_content    = in_array( $raw_justify, $allowed_justify, true ) ? $raw_justify : 'center';$columns            = isset( $attributes['columns'] ) ? max( 1, min( 6, absint( $attributes['columns'] ) ) ) : 3;
-$link_to_post       = ! empty( $attributes['linkToPost'] );
+
+$layout          = pods_block_suite_sanitize_layout_attributes( $attributes, 'column' );
+$flex_direction  = $layout['flex_direction'];
+$justify_content = $layout['justify_content'];
+$columns         = $layout['columns'];
+$link_to_post    = $layout['link_to_post'];
 
 if ( empty( $relationship_field ) ) {
 	return;
@@ -74,19 +73,11 @@ if ( 'RAND' === $order_dir ) {
 	$clean_order_by = preg_replace( '/^t\./', '', $order_by );
 	$first_type     = get_post_type( $related_ids[0] );
 	$target_pod     = $first_type ? pods( $first_type ) : null;
-	$field_info     = ( $target_pod && $target_pod->valid() ) ? $target_pod->fields( $clean_order_by ) : null;
-	$field_type     = '';
-
-	if ( is_array( $field_info ) && isset( $field_info['type'] ) ) {
-		$field_type = $field_info['type'];
-	} elseif ( is_object( $field_info ) ) {
-		$field_type = method_exists( $field_info, 'get_type' ) ? $field_info->get_type() : ( $field_info['type'] ?? '' );
-	}
+	$field_type     = pods_block_suite_get_field_type( $target_pod, $clean_order_by );
 
 	$is_numeric_sort = in_array( $clean_order_by, array( 'ID', 'menu_order' ), true )
 		|| in_array( $field_type, array( 'number', 'currency' ), true );
 
-	// Pre-fetch sort values for each related post ID
 	$sort_values = array();
 	foreach ( $related_ids as $rid ) {
 		$r_post = get_post( $rid );
@@ -143,8 +134,7 @@ if ( $limit > 0 ) {
 	$related_ids = array_slice( $related_ids, 0, $limit );
 }
 
-$items_html    = '';
-$original_post = $post;
+$items_html = '';
 
 foreach ( $related_ids as $rel_id ) {
 	$rel_post_type = get_post_type( $rel_id );
@@ -152,35 +142,7 @@ foreach ( $related_ids as $rel_id ) {
 		continue;
 	}
 
-	$post_obj = get_post( $rel_id );
-	if ( $post_obj ) {
-		$post = $post_obj;
-		setup_postdata( $post );
-	}
-
-	$context_filter = static function ( $context ) use ( $rel_id, $rel_post_type ) {
-		$context['postId']   = $rel_id;
-		$context['postType'] = $rel_post_type;
-		return $context;
-	};
-
-	add_filter( 'render_block_context', $context_filter, 10, 1 );
-
-	$single_item_html = '';
-	if ( ! empty( $block->inner_blocks ) ) {
-		foreach ( $block->inner_blocks as $inner_block ) {
-			$contextual_block  = new WP_Block(
-				$inner_block->parsed_block,
-				array(
-					'postId'   => $rel_id,
-					'postType' => $rel_post_type,
-				)
-			);
-			$single_item_html .= $contextual_block->render();
-		}
-	}
-
-	remove_filter( 'render_block_context', $context_filter, 10 );
+	$single_item_html = pods_block_suite_render_contextual_inner_blocks( $block, $rel_id, $rel_post_type );
 
 	if ( ! empty( $single_item_html ) ) {
 		$permalink = $link_to_post ? get_permalink( $rel_id ) : '';
@@ -199,14 +161,6 @@ foreach ( $related_ids as $rel_id ) {
 			);
 		}
 	}
-}
-
-// Restore original global $post
-$post = $original_post;
-if ( $original_post ) {
-	setup_postdata( $original_post );
-} else {
-	wp_reset_postdata();
 }
 
 if ( empty( $items_html ) ) {
