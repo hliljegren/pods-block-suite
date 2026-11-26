@@ -4,7 +4,7 @@
 	@include flex.pods-flex-container(
 		'.pods-related-items-grid',
 		'.pods-related-item',
-		'a.pods-related-item-link',
+		'.pods-related-item-link',
 		'wp-block-pods-block-suite-related-item-container-is-layout-flow'
 	);
 }

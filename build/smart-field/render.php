@@ -14,11 +14,14 @@ if ( ! function_exists( 'pods' ) ) {
 $selected_pod          = isset( $attributes['selectedPod'] ) ? sanitize_key( $attributes['selectedPod'] ) : '';
 $field_name            = isset( $attributes['fieldName'] ) ? sanitize_text_field( $attributes['fieldName'] ) : '';
 $display_as            = isset( $attributes['displayAs'] ) ? sanitize_key( $attributes['displayAs'] ) : 'auto';
-$layout_mode           = isset( $attributes['layoutMode'] ) ? sanitize_key( $attributes['layoutMode'] ) : 'column';
+$layout_mode           = isset( $attributes['layoutMode'] ) ? sanitize_key( $attributes['layoutMode'] ) : 'row';
 $allowed_justify       = array( 'flex-start', 'center', 'flex-end', 'space-between', 'space-around', 'space-evenly' );
 $raw_justify           = isset( $attributes['justifyContent'] ) ? sanitize_key( $attributes['justifyContent'] ) : 'center';
-$justify_content       = in_array( $raw_justify, $allowed_justify, true ) ? $raw_justify : 'center';$limit 	               = isset( $attributes['limit'] ) ? absint( $attributes['limit'] ) : 0;$image_size            = isset( $attributes['imageSize'] ) ? sanitize_key( $attributes['imageSize'] ) : 'large';
+$justify_content       = in_array( $raw_justify, $allowed_justify, true ) ? $raw_justify : 'center';
+$limit 	               = isset( $attributes['limit'] ) ? absint( $attributes['limit'] ) : 0;
+$image_size            = isset( $attributes['imageSize'] ) ? sanitize_key( $attributes['imageSize'] ) : 'large';
 $link_to_media         = ! empty( $attributes['linkToMedia'] );
+$link_to_post          = ! empty( $attributes['linkToPost'] );
 $link_to_related       = isset( $attributes['linkToRelated'] ) ? (bool) $attributes['linkToRelated'] : true;
 $related_display_field = ! empty( $attributes['relatedDisplayField'] ) ? sanitize_text_field( $attributes['relatedDisplayField'] ) : 'post_title';
 $render_as_link        = isset( $attributes['renderAsLink'] ) ? (bool) $attributes['renderAsLink'] : true;
@@ -39,7 +42,7 @@ if ( ! in_array( $html_tag, $allowed_tags, true ) ) {
 
 $allowed_layouts = array( 'column', 'row', 'ul', 'ol' );
 if ( ! in_array( $layout_mode, $allowed_layouts, true ) ) {
-	$layout_mode = 'column';
+	$layout_mode = 'row';
 }
 
 $allowed_shapes = array( 'square', 'circle', 'text' );
@@ -100,12 +103,23 @@ if ( ! $post_id || ! $post_type ) {
 	return;
 }
 
+$target_post = get_post( $post_id );
+if ( post_type_exists( $post_type ) ) {
+	if ( ! $target_post || $target_post->post_type !== $post_type || ! pods_block_suite_can_render_post( $target_post ) ) {
+		return;
+	}
+} elseif ( $target_post && in_array( $field_name, array( 'post_thumbnail', 'post_title', 'post_content', 'post_excerpt', 'post_date', 'ID', 'post_author', 'permalink' ), true ) && ! pods_block_suite_can_render_post( $target_post ) ) {
+	return;
+}
+
+$post_link_url = ( $link_to_post && $post_id ) ? get_permalink( $post_id ) : '';
+
 // 2. Initialize the PODS object
 $pod = pods( $post_type, $post_id );
 
 // 3. Detect field type and determine the effective display mode
 $field_info = ( $pod && $pod->exists() ) ? $pod->fields( $field_name ) : null;
-$field_type = '';
+$field_type = ( $pod && $pod->exists() ) ? pods_block_suite_get_field_type( $pod, $field_name ) : '';
 
 if ( is_array( $field_info ) && isset( $field_info['type'] ) ) {
 	$field_type = $field_info['type'];
@@ -320,7 +334,13 @@ if ( 'media' === $effective_mode ) {
 
 			if ( $mime_type && strpos( $mime_type, 'image/' ) === 0 ) {
 				$img_html = wp_get_attachment_image( $attachment_id, $image_size );
-				if ( $link_to_media && $file_url ) {
+				if ( $link_to_post && $post_link_url ) {
+					$item_html = sprintf(
+						'<a href="%s" class="pods-smart-field-post-link">%s</a>',
+						esc_url( $post_link_url ),
+						$img_html
+					);
+				} elseif ( $link_to_media && $file_url ) {
 					$item_html = sprintf(
 						'<a href="%s" class="pods-smart-field-media-link">%s</a>',
 						esc_url( $file_url ),
@@ -489,7 +509,8 @@ if ( 'media' === $effective_mode ) {
 
 		foreach ( $related_ids as $rel_id ) {
 			$rel_post_type = get_post_type( $rel_id );
-			if ( ! $rel_post_type ) {
+			$rel_post      = get_post( $rel_id );
+			if ( ! $rel_post_type || ! $rel_post || ! pods_block_suite_can_render_post( $rel_post ) ) {
 				continue;
 			}
 
@@ -601,11 +622,20 @@ if ( 'media' === $effective_mode ) {
 	}
 
 	if ( ! empty( $display_value ) || '0' === (string) $display_value ) {
-		$rendered_content = sprintf(
-			'<%1$s class="pods-smart-field-text">%2$s</%1$s>',
-			$html_tag,
-			wp_kses_post( $display_value )
-		);
+		if ( $link_to_post && $post_link_url ) {
+			$rendered_content = sprintf(
+				'<%1$s class="pods-smart-field-text"><a href="%2$s" class="pods-smart-field-post-link">%3$s</a></%1$s>',
+				$html_tag,
+				esc_url( $post_link_url ),
+				esc_html( wp_strip_all_tags( $display_value ) )
+			);
+		} else {
+			$rendered_content = sprintf(
+				'<%1$s class="pods-smart-field-text">%2$s</%1$s>',
+				$html_tag,
+				wp_kses_post( $display_value )
+			);
+		}
 	}
 }
 

@@ -14,6 +14,7 @@ import { useCallback } from '@wordpress/element';
 import { usePodsSchema } from '../shared/hooks/usePodsSchema';
 import { SortControls } from '../shared/components/SortControls';
 import { LayoutControls } from '../shared/components/LayoutControls';
+import { preventEditorLinkNavigation } from '../shared/preventEditorLinkNavigation';
 import './editor.scss';
 
 export default function Edit( { attributes, setAttributes, context } ) {
@@ -74,6 +75,8 @@ export default function Edit( { attributes, setAttributes, context } ) {
 	const blockProps = useBlockProps( {
 		className: 'pods-related-item-container-editor',
 		'data-editor-label': editorLabel,
+		onClickCapture: preventEditorLinkNavigation,
+		onAuxClickCapture: preventEditorLinkNavigation,
 	} );
 
 	const innerBlocksProps = useInnerBlocksProps( blockProps );

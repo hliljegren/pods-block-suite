@@ -2,11 +2,11 @@
 /**
  * Plugin Name:       PODS Block Suite
  * Description:       A comprehensive suite of Gutenberg blocks for PODS (Item Container, Related Item Container, Item List Container, and Smart Field).
- * Version:           1.2.0
+ * Version:           1.3.0
  * Requires at least: 6.5
  * Requires PHP:      7.4
  * Requires Plugins:  pods
- * Author:            Håkan
+ * Author:            Håkan Liljegren
  * Text Domain:       pods-block-suite
  */
 
@@ -15,6 +15,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 require_once plugin_dir_path( __FILE__ ) . 'includes/render-helpers.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/color-filters.php';
+
+foreach ( array( 'post', 'term', 'comment' ) as $meta_type ) {
+	foreach ( array( 'added', 'updated', 'deleted' ) as $action ) {
+		add_action( "{$action}_{$meta_type}_meta", 'pods_block_suite_invalidate_color_cache', 10, 3 );
+	}
+}
 
 /**
  * Checks whether the PODS Framework plugin is installed and active.
@@ -114,6 +121,42 @@ function pods_block_suite_get_schema() {
 		$fields_list = array();
 		$raw_fields  = $pod_obj->fields();
 
+		$excluded_filter_slugs = array(
+			'post_title',
+			'post_content',
+			'post_excerpt',
+			'comment_status',
+			'ping_status',
+			'post_password',
+			'permalink',
+			'to_ping',
+			'pinged',
+			'post_parent',
+			'guid',
+			'menu_order',
+			'post_type',
+			'post_mime_type',
+			'comments',
+			'post_thumbnail',
+			'post_name',
+			'post_date_gmt',
+			'post_modified',
+			'post_modified_gmt',
+			'post_content_filtered',
+			'filter',
+			'ancestors',
+		);
+
+		$excluded_filter_types = array(
+			'password',
+			'code',
+			'html',
+			'file',
+			'media',
+			'avatar',
+			'oembed',
+		);
+
 		if ( is_array( $raw_fields ) ) {
 			foreach ( $raw_fields as $field_slug => $field_data ) {
 				$f_label = is_object( $field_data ) && method_exists( $field_data, 'get_label' )
@@ -131,7 +174,6 @@ function pods_block_suite_get_schema() {
 						: ( $field_data['pick_val'] ?? '' );
 				}
 
-				// Determine if this field can store multiple values (repeatable, gallery, or multi-select relationship)
 				$is_repeatable = is_object( $field_data )
 					? (bool) $field_data->get_arg( 'repeatable', false )
 					: ! empty( $field_data['repeatable'] );
@@ -148,8 +190,10 @@ function pods_block_suite_get_schema() {
 					|| ( in_array( $f_type, array( 'file', 'media', 'avatar' ), true ) && 'multi' === $file_format )
 					|| ( 'pick' === $f_type && 'multi' === $pick_format );
 
-				// Exclude non-sortable multi-object / media / password types from Order By
 				$is_sortable = ! in_array( $f_type, array( 'file', 'media', 'avatar', 'password' ), true );
+
+				$is_filterable = ! in_array( $field_slug, $excluded_filter_slugs, true )
+					&& ! in_array( $f_type, $excluded_filter_types, true );
 
 				$fields_list[] = array(
 					'name'       => $field_slug,
@@ -159,6 +203,7 @@ function pods_block_suite_get_schema() {
 					'relatedPod' => $related_pod,
 					'sortable'   => $is_sortable,
 					'isMultiple' => $is_multiple,
+					'filterable' => $is_filterable,
 				);
 			}
 		}
@@ -174,6 +219,7 @@ function pods_block_suite_get_schema() {
 				'type'     => 'media',
 				'group'    => 'wp',
 				'sortable' => false,
+				'filterable' => false,
 			);
 		}
 

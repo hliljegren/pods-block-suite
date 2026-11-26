@@ -76,6 +76,60 @@ function pods_block_suite_get_field_type( $pod, $field_name ) {
 }
 
 /**
+ * Returns the color families shown in the visitor filter.
+ *
+ * @return array<string, string> Color IDs mapped to translated labels.
+ */
+function pods_block_suite_get_color_list() {
+	$colors = array(
+		'red'    => __( 'Red', 'pods-block-suite' ),
+		'orange' => __( 'Orange', 'pods-block-suite' ),
+		'yellow' => __( 'Yellow', 'pods-block-suite' ),
+		'green'  => __( 'Green', 'pods-block-suite' ),
+		'cyan'   => __( 'Cyan', 'pods-block-suite' ),
+		'blue'   => __( 'Blue', 'pods-block-suite' ),
+		'purple' => __( 'Purple', 'pods-block-suite' ),
+		'gray'   => __( 'Gray', 'pods-block-suite' ),
+		'white'  => __( 'White', 'pods-block-suite' ),
+		'black'  => __( 'Black', 'pods-block-suite' ),
+	);
+
+	/**
+	 * Filters the color IDs and labels displayed in the visitor filter.
+	 *
+	 * @param array<string, string> $colors Color IDs mapped to translated labels.
+	 */
+	return apply_filters( 'pods_block_suite_color_list', $colors );
+}
+
+/**
+ * Checks whether a post's content and fields can be displayed to this visitor.
+ *
+ * @param WP_Post $post Target post.
+ * @return bool Whether the post is accessible.
+ */
+function pods_block_suite_can_render_post( WP_Post $post ) {
+	if ( post_password_required( $post ) ) {
+		return false;
+	}
+
+	if ( is_post_publicly_viewable( $post ) ) {
+		return true;
+	}
+
+	$status = get_post_status_object( get_post_status( $post ) );
+	if ( ! $status || $status->internal ) {
+		return false;
+	}
+
+	if ( $status->private ) {
+		return current_user_can( 'read_post', $post->ID );
+	}
+
+	return ( $status->protected || $status->public ) && current_user_can( 'edit_post', $post->ID );
+}
+
+/**
  * Renders a block's inner blocks within a specific post context (postId and postType),
  * temporarily updating global $post and restoring it cleanly afterward.
  *
@@ -94,6 +148,12 @@ function pods_block_suite_render_contextual_inner_blocks( WP_Block $block, $post
 	$original_post = $post;
 
 	$target_post = get_post( $post_id );
+	if ( ( post_type_exists( $post_type ) && ( ! $target_post || $target_post->post_type !== $post_type ) )
+		|| ( $target_post && ! pods_block_suite_can_render_post( $target_post ) )
+	) {
+		return '';
+	}
+
 	if ( $target_post ) {
 		$post = $target_post;
 		setup_postdata( $post );

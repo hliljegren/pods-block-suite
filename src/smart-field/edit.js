@@ -12,6 +12,7 @@ import {
 import { useCallback } from '@wordpress/element';
 import ServerSideRender from '@wordpress/server-side-render';
 import { usePodsSchema } from '../shared/hooks/usePodsSchema';
+import { preventEditorLinkNavigation } from '../shared/preventEditorLinkNavigation';
 import metadata from './block.json';
 
 export default function Edit( { attributes, setAttributes, context } ) {
@@ -24,6 +25,7 @@ export default function Edit( { attributes, setAttributes, context } ) {
 		limit,
 		imageSize,
 		linkToMedia,
+		linkToPost,
 		linkToRelated,
 		relatedDisplayField,
 		renderAsLink,
@@ -38,7 +40,10 @@ export default function Edit( { attributes, setAttributes, context } ) {
 		htmlTag,
 	} = attributes;
 
-	const blockProps = useBlockProps();
+	const blockProps = useBlockProps( {
+		onClickCapture: preventEditorLinkNavigation,
+		onAuxClickCapture: preventEditorLinkNavigation,
+	} );
 
 	const handleAutoSelectPod = useCallback(
 		( podSlug ) => {
@@ -81,7 +86,7 @@ export default function Edit( { attributes, setAttributes, context } ) {
 		}
 	}
 
-	// Only show multi-item controls when both the display mode and the field configuration support multiple items
+	// Only show the item limit when the field supports multiple values.
 	const isMultiMode = [ 'media', 'relation', 'social' ].includes( effectiveMode );
 	const isMultiValueField = currentFieldMeta ? Boolean( currentFieldMeta.isMultiple ) : true;
 	const showMultiItemControls = isMultiMode && isMultiValueField;
@@ -196,13 +201,7 @@ export default function Edit( { attributes, setAttributes, context } ) {
 										{ label: __( 'Website URL (Link)', 'pods-block-suite' ), value: 'link' },
 										{ label: __( 'Plain Text / HTML', 'pods-block-suite' ), value: 'text' },
 									] }
-									onChange={ ( val ) => {
-										const updates = { displayAs: val };
-										if ( val === 'social' && layoutMode === 'column' ) {
-											updates.layoutMode = 'row';
-										}
-										setAttributes( updates );
-									} }
+									onChange={ ( val ) => setAttributes( { displayAs: val } ) }
 								/>
 							) }
 						</>
@@ -231,14 +230,31 @@ export default function Edit( { attributes, setAttributes, context } ) {
 								/>
 
 								<CheckboxControl
-									label={ __( 'Link to media file', 'pods-block-suite' ) }
+									label={ __( 'Link to post', 'pods-block-suite' ) }
 									help={ __(
-										'Wraps images in a link to the original media file (enables lightbox plugins).',
+										'Wraps the media in a link to its single post page.',
 										'pods-block-suite'
 									) }
-									checked={ linkToMedia }
-									onChange={ ( val ) => setAttributes( { linkToMedia: val } ) }
+									checked={ linkToPost }
+									onChange={ ( val ) =>
+										setAttributes( {
+											linkToPost: val,
+											...( val ? { linkToMedia: false } : {} ),
+										} )
+									}
 								/>
+
+								{ ! linkToPost && (
+									<CheckboxControl
+										label={ __( 'Link to media file', 'pods-block-suite' ) }
+										help={ __(
+											'Wraps images in a link to the original media file (enables lightbox plugins).',
+											'pods-block-suite'
+										) }
+										checked={ linkToMedia }
+										onChange={ ( val ) => setAttributes( { linkToMedia: val } ) }
+									/>
+								) }
 							</>
 						) }
 
@@ -402,69 +418,89 @@ export default function Edit( { attributes, setAttributes, context } ) {
 							</>
 						) }
 
-						{/* MULTI-ITEM LIMIT & LAYOUT (ONLY SHOWN FOR REPEATABLE / MULTI-VALUE FIELDS) */}
+						{/* MULTI-ITEM LIMIT */}
 						{ showMultiItemControls && (
-							<>
-								<RangeControl
-									label={ __( 'Max Items to Display (0 = Unlimited)', 'pods-block-suite' ) }
-									help={ __(
-										'Limits how many repeated or related items are shown.',
-										'pods-block-suite'
-									) }
-									value={ limit }
-									onChange={ ( val ) => setAttributes( { limit: val } ) }
-									min={ 0 }
-									max={ 50 }
-								/>
+							<RangeControl
+								label={ __( 'Max Items to Display (0 = Unlimited)', 'pods-block-suite' ) }
+								help={ __(
+									'Limits how many repeated or related items are shown.',
+									'pods-block-suite'
+								) }
+								value={ limit }
+								onChange={ ( val ) => setAttributes( { limit: val } ) }
+								min={ 0 }
+								max={ 50 }
+							/>
+						) }
 
-								<SelectControl
-									label={ __( 'Multi-item Layout', 'pods-block-suite' ) }
-									help={ __(
-										'Controls how repeated items or multiple related posts are arranged.',
-										'pods-block-suite'
-									) }
-									value={ layoutMode }
-									options={ [
-										{ label: __( 'Flexbox: Row (horizontal)', 'pods-block-suite' ), value: 'row' },
-										{ label: __( 'Flexbox: Column (vertical)', 'pods-block-suite' ), value: 'column' },
+						<SelectControl
+							label={ __( 'Layout', 'pods-block-suite' ) }
+							help={ __(
+								'Controls the direction and alignment of the field content.',
+								'pods-block-suite'
+							) }
+							value={ layoutMode }
+							options={ [
+								{ label: __( 'Flexbox: Row (horizontal)', 'pods-block-suite' ), value: 'row' },
+								{ label: __( 'Flexbox: Column (vertical)', 'pods-block-suite' ), value: 'column' },
+								...( isMultiMode || layoutMode === 'ul' || layoutMode === 'ol'
+									? [
 										{ label: __( 'Unordered List (<ul>)', 'pods-block-suite' ), value: 'ul' },
 										{ label: __( 'Ordered List (<ol>)', 'pods-block-suite' ), value: 'ol' },
-									] }
-									onChange={ ( val ) => setAttributes( { layoutMode: val } ) }
-								/>
+									  ]
+									: [] ),
+							] }
+							onChange={ ( val ) => setAttributes( { layoutMode: val } ) }
+						/>
 
-								{ ( layoutMode === 'row' || layoutMode === 'column' ) && (
-									<SelectControl
-										label={ __( 'Justify Content', 'pods-block-suite' ) }
-										value={ justifyContent }
-										options={ [
-											{ label: __( 'Center (center)', 'pods-block-suite' ), value: 'center' },
-											{ label: __( 'Start / Left (flex-start)', 'pods-block-suite' ), value: 'flex-start' },
-											{ label: __( 'End / Right (flex-end)', 'pods-block-suite' ), value: 'flex-end' },
-											{ label: __( 'Space Between (space-between)', 'pods-block-suite' ), value: 'space-between' },
-											{ label: __( 'Space Around (space-around)', 'pods-block-suite' ), value: 'space-around' },
-											{ label: __( 'Space Evenly (space-evenly)', 'pods-block-suite' ), value: 'space-evenly' },
-										] }
-										onChange={ ( val ) => setAttributes( { justifyContent: val } ) }
-									/>
+						{ ( layoutMode === 'row' || layoutMode === 'column' ) && (
+							<SelectControl
+								label={ __( 'Justify Content', 'pods-block-suite' ) }
+								help={ __(
+									'Aligns content along the selected layout direction.',
+									'pods-block-suite'
 								) }
-							</>
+								value={ justifyContent }
+								options={ [
+									{ label: __( 'Center (center)', 'pods-block-suite' ), value: 'center' },
+									{ label: __( 'Start / Left (flex-start)', 'pods-block-suite' ), value: 'flex-start' },
+									{ label: __( 'End / Right (flex-end)', 'pods-block-suite' ), value: 'flex-end' },
+									{ label: __( 'Space Between (space-between)', 'pods-block-suite' ), value: 'space-between' },
+									{ label: __( 'Space Around (space-around)', 'pods-block-suite' ), value: 'space-around' },
+									{ label: __( 'Space Evenly (space-evenly)', 'pods-block-suite' ), value: 'space-evenly' },
+								] }
+								onChange={ ( val ) => setAttributes( { justifyContent: val } ) }
+							/>
 						) }
 
 						{/* TEXT / HTML WRAPPER TAG SETTINGS */}
 						{ ( effectiveMode === 'text' || ( effectiveMode === 'link' && ! renderAsLink ) ) && (
-							<SelectControl
-								label={ __( 'HTML Wrapper Tag', 'pods-block-suite' ) }
-								value={ htmlTag }
-								options={ [
-									{ label: __( '<div> (Default)', 'pods-block-suite' ), value: 'div' },
-									{ label: __( '<p> (Paragraph)', 'pods-block-suite' ), value: 'p' },
-									{ label: __( '<h2> (Heading 2)', 'pods-block-suite' ), value: 'h2' },
-									{ label: __( '<h3> (Heading 3)', 'pods-block-suite' ), value: 'h3' },
-									{ label: __( '<span> (Inline)', 'pods-block-suite' ), value: 'span' },
-								] }
-								onChange={ ( val ) => setAttributes( { htmlTag: val } ) }
-							/>
+							<>
+								{ effectiveMode === 'text' && (
+									<CheckboxControl
+										label={ __( 'Link to post', 'pods-block-suite' ) }
+										help={ __(
+											'Wraps the text in a link to its single post page.',
+											'pods-block-suite'
+										) }
+										checked={ linkToPost }
+										onChange={ ( val ) => setAttributes( { linkToPost: val } ) }
+									/>
+								) }
+
+								<SelectControl
+									label={ __( 'HTML Wrapper Tag', 'pods-block-suite' ) }
+									value={ htmlTag }
+									options={ [
+										{ label: __( '<div> (Default)', 'pods-block-suite' ), value: 'div' },
+										{ label: __( '<p> (Paragraph)', 'pods-block-suite' ), value: 'p' },
+										{ label: __( '<h2> (Heading 2)', 'pods-block-suite' ), value: 'h2' },
+										{ label: __( '<h3> (Heading 3)', 'pods-block-suite' ), value: 'h3' },
+										{ label: __( '<span> (Inline)', 'pods-block-suite' ), value: 'span' },
+									] }
+									onChange={ ( val ) => setAttributes( { htmlTag: val } ) }
+								/>
+							</>
 						) }
 					</PanelBody>
 				) }

@@ -36,6 +36,13 @@ if ( ! $parent_id || ! $parent_type ) {
 	return;
 }
 
+if ( post_type_exists( $parent_type ) ) {
+	$parent_post = get_post( $parent_id );
+	if ( ! $parent_post || $parent_post->post_type !== $parent_type || ! pods_block_suite_can_render_post( $parent_post ) ) {
+		return;
+	}
+}
+
 $pod = pods( $parent_type, $parent_id );
 if ( ! $pod || ! $pod->exists() ) {
 	return;
@@ -60,7 +67,15 @@ if ( is_numeric( $raw_related ) ) {
 	}
 }
 
-$related_ids = array_values( array_filter( $related_ids ) );
+$related_ids = array_values(
+	array_filter(
+		$related_ids,
+		static function ( $related_id ) {
+			$related_post = get_post( $related_id );
+			return $related_post && pods_block_suite_can_render_post( $related_post );
+		}
+	)
+);
 
 if ( empty( $related_ids ) ) {
 	return;
@@ -147,11 +162,13 @@ foreach ( $related_ids as $rel_id ) {
 	if ( ! empty( $single_item_html ) ) {
 		$permalink = $link_to_post ? get_permalink( $rel_id ) : '';
 		if ( $link_to_post && $permalink ) {
+			$card_title  = get_the_title( $rel_id );
 			$items_html .= sprintf(
-				'<a href="%1$s" class="pods-related-item pods-related-item-link" data-related-id="%2$d">%3$s</a>',
-				esc_url( $permalink ),
+				'<div class="pods-related-item pods-related-item-link" data-related-id="%1$d">%2$s<a href="%3$s" class="pods-card-overlay-link" aria-label="%4$s"></a></div>',
 				$rel_id,
-				$single_item_html
+				$single_item_html,
+				esc_url( $permalink ),
+				esc_attr( $card_title )
 			);
 		} else {
 			$items_html .= sprintf(

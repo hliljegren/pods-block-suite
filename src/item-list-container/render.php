@@ -42,23 +42,57 @@ if ( ! $pod || ! $pod->valid() ) {
 $where_clauses   = array();
 $active_filters  = array();
 $has_active_form = false;
+$filter_errors   = array();
+$color_list      = null;
+$color_ranges    = null;
+$search_param    = 'pods_search_' . $selected_pod;
+$search_value    = isset( $_GET[ $search_param ] ) ? sanitize_text_field( wp_unslash( $_GET[ $search_param ] ) ) : '';
 
-// Ensure only published items are fetched when the POD is post-type based
+// Exclude password-protected posts from search, filters, pagination, and results.
 if ( post_type_exists( $selected_pod ) ) {
 	$where_clauses[] = "t.post_status = 'publish'";
+	$where_clauses[] = "t.post_password = ''";
 }
-
-$search_param = 'pods_search_' . $selected_pod;
-$search_value = isset( $_GET[ $search_param ] ) ? sanitize_text_field( wp_unslash( $_GET[ $search_param ] ) ) : '';
 
 if ( $enable_search && '' !== $search_value ) {
 	$has_active_form = true;
 	$like_term       = '%' . $wpdb->esc_like( $search_value ) . '%';
-	$where_clauses[] = $wpdb->prepare(
-		'( t.post_title LIKE %s OR t.post_content LIKE %s )',
-		$like_term,
-		$like_term
+
+	$search_conditions = array(
+		$wpdb->prepare( 't.post_title LIKE %s', $like_term ),
+		$wpdb->prepare( 't.post_content LIKE %s', $like_term ),
 	);
+
+	// Include PODS text, paragraph, and WYSIWYG fields in keyword search
+	$searchable_meta_keys = array();
+	$all_pod_fields       = $pod->fields();
+	if ( is_array( $all_pod_fields ) ) {
+		foreach ( $all_pod_fields as $pf_slug => $pf_obj ) {
+			$pf_type = is_object( $pf_obj ) && method_exists( $pf_obj, 'get_type' )
+				? $pf_obj->get_type()
+				: ( $pf_obj['type'] ?? '' );
+
+			if ( in_array( $pf_type, array( 'text', 'paragraph', 'wysiwyg' ), true ) ) {
+				$searchable_meta_keys[] = sanitize_key( $pf_slug );
+			}
+		}
+	}
+
+	if ( ! empty( $searchable_meta_keys ) ) {
+		$placeholders        = implode( ', ', array_fill( 0, count( $searchable_meta_keys ), '%s' ) );
+		$query_args          = array_merge( $searchable_meta_keys, array( $like_term ) );
+		$search_conditions[] = $wpdb->prepare(
+			"EXISTS (
+				SELECT 1 FROM {$wpdb->postmeta} pm_search
+				WHERE pm_search.post_id = t.ID
+				AND pm_search.meta_key IN ( {$placeholders} )
+				AND pm_search.meta_value LIKE %s
+			)",
+			$query_args
+		);
+	}
+
+	$where_clauses[] = '( ' . implode( ' OR ', $search_conditions ) . ' )';
 }
 
 $allowed_operators = array( '=', '>', '>=', '<', '<=' );
@@ -73,11 +107,16 @@ foreach ( $filter_fields as $f_slug ) {
 		? $field_obj->get_type()
 		: ( $field_obj['type'] ?? 'text' );
 
+	if ( 'color' === $f_type && null === $color_list ) {
+		$color_list   = pods_block_suite_get_color_list();
+		$color_ranges = pods_block_suite_get_color_ranges();
+	}
+
 	$param_name = 'pods_filter_' . $selected_pod . '_' . $f_slug;
 	$op_param   = $param_name . '_op';
 
 	$raw_val = isset( $_GET[ $param_name ] ) ? sanitize_text_field( wp_unslash( $_GET[ $param_name ] ) ) : '';
-	$raw_op  = isset( $_GET[ $op_param ] ) ? sanitize_text_field( wp_unslash( $_GET[ $op_param ] ) ) : '=';
+	$raw_op  = isset( $_GET[ $op_param ] ) && is_string( $_GET[ $op_param ] ) ? wp_unslash( $_GET[ $op_param ] ) : '=';
 
 	if ( ! in_array( $raw_op, $allowed_operators, true ) ) {
 		$raw_op = '=';
@@ -94,7 +133,43 @@ foreach ( $filter_fields as $f_slug ) {
 
 	$has_active_form = true;
 
-	if ( in_array( $f_type, array( 'number', 'currency' ), true ) && is_numeric( $raw_val ) ) {
+	if ( 'color' === $f_type ) {
+		if ( ! isset( $color_list[ $raw_val ], $color_ranges[ $raw_val ] ) || ! pods_block_suite_valid_color_ranges( $color_ranges[ $raw_val ] ) ) {
+			$filter_errors[] = __( 'The selected color is not available for filtering.', 'pods-block-suite' );
+			$where_clauses[] = '1 = 0';
+			continue;
+		}
+		$colors = pods_block_suite_get_field_colors( $pod, $f_slug );
+		if ( is_wp_error( $colors ) ) {
+			$filter_errors[] = $colors->get_error_message();
+			$where_clauses[] = '1 = 0';
+			continue;
+		}
+		$matching_colors = array();
+		foreach ( $colors as $value => $hsl ) {
+			if ( pods_block_suite_color_matches_ranges( $hsl, $color_ranges[ $raw_val ] ) ) {
+				$matching_colors[] = (string) $value;
+			}
+		}
+		if ( empty( $matching_colors ) ) {
+			$where_clauses[] = '1 = 0';
+		} else {
+			$pod_data = $pod->pod_data;
+			if ( 'table' === $pod_data->get_storage() ) {
+				$alias = in_array( $pod_data->get_type(), array( 'pod', 'table' ), true ) ? 't' : 'd';
+				$column = "`{$alias}`.`{$f_slug}`";
+			} else {
+				$column = "`{$f_slug}`.meta_value";
+			}
+			$placeholders    = implode( ', ', array_fill( 0, count( $matching_colors ), '%s' ) );
+			$where_clauses[] = $wpdb->prepare( "{$column} IN ({$placeholders})", $matching_colors );
+		}
+	} elseif ( 'comment_count' === $f_slug && is_numeric( $raw_val ) ) {
+		$where_clauses[] = $wpdb->prepare(
+			"t.comment_count {$raw_op} %d",
+			absint( $raw_val )
+		);
+	} elseif ( in_array( $f_type, array( 'number', 'currency' ), true ) && is_numeric( $raw_val ) ) {
 		$num_val         = floatval( $raw_val );
 		$where_clauses[] = $wpdb->prepare(
 			"CAST( {$f_slug}.meta_value AS DECIMAL(12,2) ) {$raw_op} %f",
@@ -179,6 +254,9 @@ if ( ! empty( $filter_fields ) || $enable_search ) {
 	?>
 	<form method="get" class="pods-list-filters-form" action="<?php echo esc_url( strtok( $_SERVER['REQUEST_URI'], '?' ) ); ?>">
 		<?php
+		foreach ( $filter_errors as $filter_error ) {
+			printf( '<p class="pods-filter-error" role="alert">%s</p>', esc_html( $filter_error ) );
+		}
 		foreach ( $_GET as $g_key => $g_val ) {
 			if ( is_string( $g_val ) && strpos( $g_key, 'pods_filter_' . $selected_pod ) !== 0 && $g_key !== $search_param && $g_key !== $page_param ) {
 				printf( '<input type="hidden" name="%s" value="%s" />', esc_attr( $g_key ), esc_attr( wp_unslash( $g_val ) ) );
@@ -208,7 +286,15 @@ if ( ! empty( $filter_fields ) || $enable_search ) {
 			<div class="pods-filter-control">
 				<label for="<?php echo $input_id; ?>"><?php echo esc_html( $f_label ); ?></label>
 
-				<?php if ( in_array( $f_type, array( 'pick', 'taxonomy', 'boolean' ), true ) ) : ?>
+				<?php if ( 'color' === $f_type ) : ?>
+					<select id="<?php echo $input_id; ?>" name="<?php echo esc_attr( $param_name ); ?>" onchange="this.form.submit()">
+						<option value=""><?php echo esc_html( sprintf( __( 'All (%s)', 'pods-block-suite' ), $f_label ) ); ?></option>
+						<?php foreach ( $color_list as $color_id => $color_label ) : ?>
+							<option value="<?php echo esc_attr( $color_id ); ?>" <?php selected( (string) $cur_val, (string) $color_id ); ?>><?php echo esc_html( $color_label ); ?></option>
+						<?php endforeach; ?>
+					</select>
+
+				<?php elseif ( in_array( $f_type, array( 'pick', 'taxonomy', 'boolean' ), true ) ) : ?>
 					<?php
 					$options = array();
 
@@ -262,7 +348,7 @@ if ( ! empty( $filter_fields ) || $enable_search ) {
 								$wpdb->prepare(
 									"SELECT DISTINCT pm.meta_value FROM {$wpdb->postmeta} pm
 									 INNER JOIN {$wpdb->posts} p ON p.ID = pm.post_id
-									 WHERE p.post_type = %s AND p.post_status = 'publish'
+									 WHERE p.post_type = %s AND p.post_status = 'publish' AND p.post_password = ''
 									 AND pm.meta_key = %s AND pm.meta_value != ''
 									 ORDER BY pm.meta_value ASC",
 									$selected_pod,
@@ -295,10 +381,10 @@ if ( ! empty( $filter_fields ) || $enable_search ) {
 					<div class="pods-filter-numeric-group">
 						<select class="pods-filter-operator" name="<?php echo esc_attr( $op_param ); ?>" aria-label="<?php esc_attr_e( 'Comparison operator', 'pods-block-suite' ); ?>">
 							<option value="=" <?php selected( $cur_op, '=' ); ?>>=</option>
-							<option value=">" <?php selected( $cur_op, '>' ); ?>>&gt;</option>
-							<option value=">=" <?php selected( $cur_op, '>=' ); ?>>&ge;</option>
-							<option value="<" <?php selected( $cur_op, '<' ); ?>>&lt;</option>
-							<option value="<=" <?php selected( $cur_op, '<=' ); ?>>&le;</option>
+							<option value="&gt;" <?php selected( $cur_op, '>' ); ?>>&gt;</option>
+							<option value="&gt;=" <?php selected( $cur_op, '>=' ); ?>>&ge;</option>
+							<option value="&lt;" <?php selected( $cur_op, '<' ); ?>>&lt;</option>
+							<option value="&lt;=" <?php selected( $cur_op, '<=' ); ?>>&le;</option>
 						</select>
 						<input
 							id="<?php echo $input_id; ?>"
@@ -372,11 +458,13 @@ if ( $pod->total() > 0 ) {
 		if ( ! empty( $single_item_html ) ) {
 			$permalink = $link_to_post ? get_permalink( $item_id ) : '';
 			if ( $link_to_post && $permalink ) {
+				$card_title  = get_the_title( $item_id );
 				$items_html .= sprintf(
-					'<a href="%1$s" class="pods-list-item pods-list-item-link" data-item-id="%2$d">%3$s</a>',
-					esc_url( $permalink ),
+					'<div class="pods-list-item pods-list-item-link" data-item-id="%1$d">%2$s<a href="%3$s" class="pods-card-overlay-link" aria-label="%4$s"></a></div>',
 					$item_id,
-					$single_item_html
+					$single_item_html,
+					esc_url( $permalink ),
+					esc_attr( $card_title )
 				);
 			} else {
 				$items_html .= sprintf(

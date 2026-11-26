@@ -15,6 +15,7 @@ import {
 import { usePodsSchema } from '../shared/hooks/usePodsSchema';
 import { SortControls } from '../shared/components/SortControls';
 import { LayoutControls } from '../shared/components/LayoutControls';
+import { preventEditorLinkNavigation } from '../shared/preventEditorLinkNavigation';
 import './editor.scss';
 
 export default function Edit( { attributes, setAttributes } ) {
@@ -36,7 +37,9 @@ export default function Edit( { attributes, setAttributes } ) {
 		selectedPod,
 	} );
 
-	const availableFields = activePodData ? activePodData.fields : [];
+	const availableFields = activePodData
+		? activePodData.fields.filter( ( field ) => field.filterable !== false )
+		: [];
 
 	const toggleFilterField = ( fieldSlug, isChecked ) => {
 		if ( isChecked ) {
@@ -65,6 +68,8 @@ export default function Edit( { attributes, setAttributes } ) {
 	const blockProps = useBlockProps( {
 		className: 'pods-item-list-container-editor',
 		'data-editor-label': editorLabel,
+		onClickCapture: preventEditorLinkNavigation,
+		onAuxClickCapture: preventEditorLinkNavigation,
 	} );
 
 	const innerBlocksProps = useInnerBlocksProps( blockProps );

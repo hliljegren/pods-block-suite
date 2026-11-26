@@ -12,6 +12,7 @@ import {
 import { useEffect } from '@wordpress/element';
 import { useSelect } from '@wordpress/data';
 import { store as coreStore } from '@wordpress/core-data';
+import { preventEditorLinkNavigation } from '../shared/preventEditorLinkNavigation';
 import './editor.scss';
 
 export default function Edit( { attributes, setAttributes, context } ) {
@@ -69,6 +70,8 @@ export default function Edit( { attributes, setAttributes, context } ) {
 	const blockProps = useBlockProps( {
 		className: 'pods-item-container-editor',
 		'data-editor-label': editorLabel,
+		onClickCapture: preventEditorLinkNavigation,
+		onAuxClickCapture: preventEditorLinkNavigation,
 	} );
 
 	const innerBlocksProps = useInnerBlocksProps( blockProps );

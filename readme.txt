@@ -4,7 +4,7 @@ Tags:              pods, gutenberg, blocks, custom-fields, dynamic-content
 Requires at least: 6.5
 Tested up to:      6.7
 Requires PHP:      7.4
-Stable tag:        1.1.0
+Stable tag:        1.3.0
 License:           GPL-2.0-or-later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -23,6 +23,7 @@ A complete suite of Gutenberg blocks for PODS that lets you display, loop, and f
 3. **PODS Item List Container (`pods-block-suite/item-list-container`)**
    Queries and lists items from any selected POD with configurable sorting, pagination, responsive Flexbox grids, and **interactive frontend visitor filters**. Administrators can select which fields visitors can filter by:
    * **Selection & Relationship fields (`pick`, `taxonomy`, `boolean`):** Automatically rendered as `<select>` dropdowns populated with available options.
+   * **Color fields (`color`):** Filter by named HSL color families. Customize labels and matching ranges with the `pods_block_suite_color_list` and `pods_block_suite_color_ranges` filters.
    * **Numeric & Currency fields (`number`, `currency`):** Rendered with a comparison operator selector (`=`, `>`, `>=`, `<`, `<=`) paired with a numeric input.
    * **Text fields & Keyword Search:** Rendered as text inputs for partial matching.
 
@@ -32,7 +33,10 @@ A complete suite of Gutenberg blocks for PODS that lets you display, loop, and f
    * **oEmbed:** Responsive 16:9 embeds for YouTube, Vimeo, and other WordPress oEmbed providers.
    * **Color Picker:** Renders colors as customizable square swatches, circle swatches, or hex labels.
    * **Relationships:** Single or multi-item links/lists displaying any chosen field from the related post.
+   * **Layout Controls:** Row (default) or column Flexbox layout and alignment for every field. Multi-value media, relationship, and social fields can also use list layouts and item limits.
    * **URLs & Text:** Clickable links (with custom label and `target="_blank"` options) or semantic HTML text wrappers (`<div>`, `<p>`, `<h2>`, `<h3>`, `<span>`).
+
+Smart Fields without an explicitly saved layout now use the row default, including fields created before version 1.3.0. Links inside PODS blocks do not navigate in the editor; they remain active on the frontend.
 
 == Installation ==
 
@@ -80,3 +84,16 @@ Yes. All interface strings use the `pods-block-suite` text domain and `@wordpres
 * Added dynamic **Order By** (supporting PODS numeric/text fields and post-type-supported WordPress fields) and **Sort Direction** (`DESC`, `ASC`, `RAND`) to both **PODS Item List Container** and **PODS Related Item Container**.
 * Added Flexbox **Justify Content** alignment and full-width responsive grid handling across container and field blocks.
 * Fixed FSE `is-layout-flow` top margin alignment issues on multi-column grids.
+
+= 1.2.0 =
+* Refactored shared editor logic into reusable modules (`usePodsSchema` hook, `SortControls`, and `LayoutControls` components) under `src/shared/`.
+* Consolidated multi-column Flexbox grid and clickable card styles into a shared Dart Sass partial (`src/shared/styles/_flex-layout.scss`).
+* Extracted server-side attribute sanitization, PODS field type detection, and contextual inner-block rendering into `includes/render-helpers.php`.
+* Enhanced **PODS Smart Field** to detect single vs. repeatable/multi-value fields (`isMultiple`) via the schema REST endpoint, automatically hiding multi-item layout controls for single-value fields such as `post_thumbnail`.
+
+= 1.3.0 =
+* Added customizable color-family filters and metadata-backed color caching.
+* Restored Smart Field layout controls for single fields and changed the default layout to row.
+* Prevented links within PODS blocks from navigating in the block editor.
+* Fixed numeric comparison options, keyword searching, and post visibility in item lists.
+* Improved clickable card overlays for nested links.

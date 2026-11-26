@@ -18,6 +18,7 @@ Queries and lists items from any selected POD with configurable sorting, paginat
 * **Flexbox Grid & Alignment:** Supports column/row layouts (`1–6` columns), `justify-content` alignment controls, and clickable card wrappers.
 * **Custom Sorting:** Order items by supported WordPress standard fields, PODS custom fields (automatically cast numerically for `number` and `currency` fields), or `Random` order.
 * **Selection & Relationship fields (`pick`, `taxonomy`, `boolean`):** Automatically rendered as `<select>` dropdowns populated with available options.
+* **Color fields (`color`):** Filter by named HSL color families. Colors below 15% lightness are black, colors at 90% lightness or higher are white, and colors in between with saturation below 10% are gray. Other colors match hue-based families; some light pinks also match red.
 * **Numeric & Currency fields (`number`, `currency`):** Rendered with a comparison operator selector (`=`, `>`, `>=`, `<`, `<=`) paired with a numeric input.
 * **Text fields & Keyword Search:** Rendered as text inputs for partial matching.
 
@@ -28,8 +29,39 @@ A context-aware field block with dynamic POD and field dropdowns (including Word
 * **oEmbed:** Responsive 16:9 embeds for YouTube, Vimeo, and other WordPress oEmbed providers.
 * **Color Picker:** Renders colors as customizable square swatches, circle swatches, or hex labels.
 * **Relationships:** Single or multi-item links/lists displaying any chosen field from the related post.
-* **Multi-item Controls:** Optional `Max Items` limit (`0 = unlimited`), layout modes (`row`, `column`, `ul`, `ol`), and Flexbox `justify-content` alignment.
+* **Layout Controls:** Row (default) or column Flexbox layout and `justify-content` alignment for every field. Media, relationship, and social fields also support list layouts; multi-value fields can limit the number of items.
 * **URLs & Text:** Clickable links (with custom label and `target="_blank"` options) or semantic HTML text wrappers (`<div>`, `<p>`, `<h2>`, `<h3>`, `<span>`).
+
+Links inside Pods Block Suite blocks do not navigate in the block editor; they remain active on the front end.
+
+Smart Fields without an explicitly saved layout use the row default, including fields created before this default changed. Their alignment is independent of the surrounding container.
+
+Post-backed blocks only render posts the current visitor can access. Private and unpublished posts require the appropriate WordPress capabilities, and password-protected posts require the visitor to enter their password first. Item lists exclude password-protected posts entirely, including from filters and pagination.
+
+### Custom color families
+
+Use both `pods_block_suite_color_list` (IDs and labels) and `pods_block_suite_color_ranges` (matching rules) to add a family:
+
+```php
+add_filter( 'pods_block_suite_color_list', function ( $colors ) {
+	$colors['brown'] = __( 'Brown', 'my-text-domain' );
+	return $colors;
+} );
+add_filter( 'pods_block_suite_color_ranges', function ( $ranges ) {
+	$ranges['brown'] = array(
+		array(
+			'hue'        => array( 15, 45 ),
+			'saturation' => array( 30, 100 ),
+			'lightness'  => array( 15, 50 ),
+		),
+	);
+	return $ranges;
+} );
+```
+
+Each family may have multiple alternative ranges; omitted components are unrestricted. Hue is in degrees (0–360), saturation and lightness in percent (0–100). Bounds include the start and exclude the end, except that an end of 100 includes 100% for saturation and lightness. Hue bounds can wrap around zero, e.g. `[345, 15]`. Families can overlap. Invalid or missing rules produce an error when selected.
+
+Distinct metadata-backed colors and their HSL values are cached for up to one hour and invalidated by WordPress metadata changes. Table-backed and user-meta colors are read on each filtered request. Large numbers of distinct colors can still make queries expensive.
 
 ## Architecture & Shared Modules (v1.2.0+)
 To keep the codebase DRY and maintainable across all blocks, shared logic is organized under `src/shared/` and `includes/`:
@@ -54,3 +86,13 @@ npm install
 npm start       # Development watch mode
 npm run build   # Build production assets
 npm run plugin-zip # Create a clean WordPress plugin zip
+```
+
+## Changelog
+
+### 1.3.0
+* Added customizable color-family filters and metadata-backed color caching.
+* Restored Smart Field layout controls for single fields and changed the default layout to row.
+* Prevented links within PODS blocks from navigating in the block editor.
+* Fixed numeric comparison options, keyword searching, and post visibility in item lists.
+* Improved clickable card overlays for nested links.

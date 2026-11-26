@@ -4,7 +4,7 @@
  *
  * @param {String} $grid-selector Selector for the inner flex container (e.g. '.pods-related-items-grid').
  * @param {String} $item-selector Selector for each rendered item card (e.g. '.pods-related-item').
- * @param {String} $link-selector Selector for clickable card anchors (e.g. 'a.pods-related-item-link').
+ * @param {String} $link-selector Selector for clickable card wrappers (e.g. '.pods-related-item-link').
  * @param {String} $flow-class    Optional WordPress FSE flow layout class on the block wrapper.
  */
 @mixin pods-flex-container(
@@ -71,16 +71,33 @@
 		}
 
 		#{$link-selector} {
-			display: block;
-			text-decoration: none;
-			color: inherit;
+			position: relative;
 			cursor: pointer;
 			transition: transform 0.15s ease, opacity 0.15s ease;
 
 			&:hover,
-			&:focus-visible {
+			&:focus-within {
 				transform: translateY(-2px);
 				opacity: 0.92;
+			}
+
+			// Full-card overlay anchor avoids invalid nested <a> tags when inner blocks contain links
+			> a.pods-card-overlay-link {
+				position: absolute;
+				inset: 0;
+				z-index: 2;
+				display: block;
+				text-decoration: none;
+
+				&:focus-visible {
+					outline: 2px solid currentColor;
+					outline-offset: 2px;
+				}
+			}
+
+			// Ensure the entire card directs clicks to the card's target post
+			a:not(.pods-card-overlay-link) {
+				pointer-events: none;
 			}
 		}
 	}
