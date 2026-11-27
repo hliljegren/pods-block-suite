@@ -91,6 +91,29 @@ function pods_block_suite_valid_color_ranges( $ranges ) {
 }
 
 /**
+ * Returns a representative HSL color for a family's first matching range.
+ *
+ * @param mixed $ranges Ranges for one color family.
+ * @return string CSS color, or an empty string for invalid ranges.
+ */
+function pods_block_suite_color_swatch( $ranges ) {
+	if ( ! pods_block_suite_valid_color_ranges( $ranges ) ) {
+		return '';
+	}
+	$range = reset( $ranges );
+	$hue   = 0;
+	if ( isset( $range['hue'] ) ) {
+		$start = (float) $range['hue'][0];
+		$end   = (float) $range['hue'][1];
+		$hue   = fmod( ( $start + ( $end < $start ? $end + 360 : $end ) ) / 2, 360 );
+	}
+	$saturation = isset( $range['saturation'] ) ? ( $range['saturation'][0] + $range['saturation'][1] ) / 2 : ( isset( $range['hue'] ) ? 70 : 0 );
+	$lightness  = isset( $range['lightness'] ) ? ( $range['lightness'][0] + $range['lightness'][1] ) / 2 : 50;
+
+	return sprintf( 'hsl(%s, %s%%, %s%%)', $hue, $saturation, $lightness );
+}
+
+/**
  * Converts a three- or six-digit hexadecimal color to HSL.
  *
  * @param string $hex Stored color.

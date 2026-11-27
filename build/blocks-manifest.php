@@ -5,7 +5,7 @@ return array(
 		'$schema' => 'https://schemas.wp.org/trunk/block.json',
 		'apiVersion' => 3,
 		'name' => 'pods-block-suite/item-container',
-		'version' => '1.3.0',
+		'version' => '1.3.1',
 		'title' => 'PODS Item Container',
 		'category' => 'widgets',
 		'icon' => 'database',
@@ -53,7 +53,7 @@ return array(
 		'$schema' => 'https://schemas.wp.org/trunk/block.json',
 		'apiVersion' => 3,
 		'name' => 'pods-block-suite/item-list-container',
-		'version' => '1.3.0',
+		'version' => '1.3.1',
 		'title' => 'PODS Item List Container',
 		'category' => 'widgets',
 		'icon' => 'list-view',
@@ -83,6 +83,14 @@ return array(
 				'type' => 'array',
 				'default' => array(
 					
+				),
+				'items' => array(
+					'type' => 'string'
+				)
+			),
+			'colorSwatchFields' => array(
+				'type' => 'array',
+				'default' => array(
 				),
 				'items' => array(
 					'type' => 'string'
@@ -131,7 +139,7 @@ return array(
 		'$schema' => 'https://schemas.wp.org/trunk/block.json',
 		'apiVersion' => 3,
 		'name' => 'pods-block-suite/related-item-container',
-		'version' => '1.3.0',
+		'version' => '1.3.1',
 		'title' => 'PODS Related Item Container',
 		'category' => 'widgets',
 		'icon' => 'networking',
@@ -208,7 +216,7 @@ return array(
 		'$schema' => 'https://schemas.wp.org/trunk/block.json',
 		'apiVersion' => 3,
 		'name' => 'pods-block-suite/smart-field',
-		'version' => '1.3.0',
+		'version' => '1.3.1',
 		'title' => 'PODS Smart Field',
 		'category' => 'widgets',
 		'icon' => 'media-default',

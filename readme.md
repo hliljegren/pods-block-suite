@@ -18,7 +18,7 @@ Queries and lists items from any selected POD with configurable sorting, paginat
 * **Flexbox Grid & Alignment:** Supports column/row layouts (`1–6` columns), `justify-content` alignment controls, and clickable card wrappers.
 * **Custom Sorting:** Order items by supported WordPress standard fields, PODS custom fields (automatically cast numerically for `number` and `currency` fields), or `Random` order.
 * **Selection & Relationship fields (`pick`, `taxonomy`, `boolean`):** Automatically rendered as `<select>` dropdowns populated with available options.
-* **Color fields (`color`):** Filter by named HSL color families. Colors below 15% lightness are black, colors at 90% lightness or higher are white, and colors in between with saturation below 10% are gray. Other colors match hue-based families; some light pinks also match red.
+* **Color fields (`color`):** Filter by named HSL color families, using a dropdown or the optional **Use Color Swatches** setting for each enabled color field. Colors below 15% lightness are black, colors at 90% lightness or higher are white, and colors in between with saturation below 10% are gray. Other colors match hue-based families; some light pinks also match red.
 * **Numeric & Currency fields (`number`, `currency`):** Rendered with a comparison operator selector (`=`, `>`, `>=`, `<`, `<=`) paired with a numeric input.
 * **Text fields & Keyword Search:** Rendered as text inputs for partial matching.
 
@@ -61,6 +61,8 @@ add_filter( 'pods_block_suite_color_ranges', function ( $ranges ) {
 
 Each family may have multiple alternative ranges; omitted components are unrestricted. Hue is in degrees (0–360), saturation and lightness in percent (0–100). Bounds include the start and exclude the end, except that an end of 100 includes 100% for saturation and lightness. Hue bounds can wrap around zero, e.g. `[345, 15]`. Families can overlap. Invalid or missing rules produce an error when selected.
 
+Swatches show a representative color from the first range, not an exact stored color. Families with invalid or missing ranges are shown as text.
+
 Distinct metadata-backed colors and their HSL values are cached for up to one hour and invalidated by WordPress metadata changes. Table-backed and user-meta colors are read on each filtered request. Large numbers of distinct colors can still make queries expensive.
 
 ## Architecture & Shared Modules (v1.2.0+)
@@ -89,6 +91,9 @@ npm run plugin-zip # Create a clean WordPress plugin zip
 ```
 
 ## Changelog
+
+### 1.3.1
+* Added optional color swatches for item list color filters.
 
 ### 1.3.0
 * Added customizable color-family filters and metadata-backed color caching.

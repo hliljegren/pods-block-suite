@@ -20,6 +20,7 @@ $raw_order_dir     = isset( $attributes['orderDir'] ) ? strtoupper( $attributes[
 $order_dir         = in_array( $raw_order_dir, array( 'ASC', 'DESC', 'RAND' ), true ) ? $raw_order_dir : 'DESC';
 $enable_pagination = isset( $attributes['enablePagination'] ) ? (bool) $attributes['enablePagination'] : true;
 $filter_fields     = isset( $attributes['filterFields'] ) && is_array( $attributes['filterFields'] ) ? array_map( 'sanitize_key', $attributes['filterFields'] ) : array();
+$color_swatch_fields = isset( $attributes['colorSwatchFields'] ) && is_array( $attributes['colorSwatchFields'] ) ? array_map( 'sanitize_key', $attributes['colorSwatchFields'] ) : array();
 $enable_search     = ! empty( $attributes['enableSearch'] );
 
 $layout          = pods_block_suite_sanitize_layout_attributes( $attributes, 'row' );
@@ -282,11 +283,36 @@ if ( ! empty( $filter_fields ) || $enable_search ) {
 			$cur_val    = $active_filters[ $f_slug ]['value'] ?? '';
 			$cur_op     = $active_filters[ $f_slug ]['op'] ?? '=';
 			$input_id   = 'filter-' . esc_attr( $selected_pod . '-' . $f_slug );
+			$use_swatches = 'color' === $f_type && in_array( $f_slug, $color_swatch_fields, true );
 			?>
 			<div class="pods-filter-control">
-				<label for="<?php echo $input_id; ?>"><?php echo esc_html( $f_label ); ?></label>
+				<?php if ( ! $use_swatches ) : ?>
+					<label for="<?php echo $input_id; ?>"><?php echo esc_html( $f_label ); ?></label>
+				<?php endif; ?>
 
-				<?php if ( 'color' === $f_type ) : ?>
+				<?php if ( $use_swatches ) : ?>
+					<fieldset class="pods-color-swatches">
+						<legend><?php echo esc_html( $f_label ); ?></legend>
+						<div class="pods-color-swatches-options">
+							<label class="pods-color-swatch pods-color-swatch-all">
+								<input type="radio" name="<?php echo esc_attr( $param_name ); ?>" value="" <?php checked( $cur_val, '' ); ?> onchange="this.form.submit()" />
+								<span><?php esc_html_e( 'All', 'pods-block-suite' ); ?></span>
+							</label>
+							<?php foreach ( $color_list as $color_id => $color_label ) : ?>
+								<?php $swatch_color = pods_block_suite_color_swatch( $color_ranges[ $color_id ] ?? null ); ?>
+								<label class="pods-color-swatch" title="<?php echo esc_attr( $color_label ); ?>">
+									<input type="radio" name="<?php echo esc_attr( $param_name ); ?>" value="<?php echo esc_attr( $color_id ); ?>" <?php checked( (string) $cur_val, (string) $color_id ); ?> onchange="this.form.submit()" />
+									<?php if ( $swatch_color ) : ?>
+										<span class="pods-color-swatch-color" style="background-color: <?php echo esc_attr( $swatch_color ); ?>" aria-hidden="true"></span>
+										<span class="pods-color-swatch-name"><?php echo esc_html( $color_label ); ?></span>
+									<?php else : ?>
+										<span><?php echo esc_html( $color_label ); ?></span>
+									<?php endif; ?>
+								</label>
+							<?php endforeach; ?>
+						</div>
+					</fieldset>
+				<?php elseif ( 'color' === $f_type ) : ?>
 					<select id="<?php echo $input_id; ?>" name="<?php echo esc_attr( $param_name ); ?>" onchange="this.form.submit()">
 						<option value=""><?php echo esc_html( sprintf( __( 'All (%s)', 'pods-block-suite' ), $f_label ) ); ?></option>
 						<?php foreach ( $color_list as $color_id => $color_label ) : ?>

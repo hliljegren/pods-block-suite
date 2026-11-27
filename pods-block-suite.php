@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       PODS Block Suite
  * Description:       A comprehensive suite of Gutenberg blocks for PODS (Item Container, Related Item Container, Item List Container, and Smart Field).
- * Version:           1.3.0
+ * Version:           1.3.1
  * Requires at least: 6.5
  * Requires PHP:      7.4
  * Requires Plugins:  pods

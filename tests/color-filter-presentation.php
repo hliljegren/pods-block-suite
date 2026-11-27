@@ -140,9 +140,15 @@ function selected( $value, $current ) {
 		echo 'selected="selected"';
 	}
 }
+function checked( $value, $current ) {
+	if ( $value === $current ) {
+		echo 'checked="checked"';
+	}
+}
 function apply_filters( $name, $value ) {
 	if ( 'pods_block_suite_color_list' === $name ) {
 		$value['brown"test'] = '<Brown>';
+		$value['missing'] = 'Missing range';
 	} elseif ( 'pods_block_suite_color_ranges' === $name ) {
 		$value['brown"test'] = array( array( 'hue' => array( 15, 45 ), 'lightness' => array( 15, 50 ) ) );
 	}
@@ -206,7 +212,7 @@ function expect_color_result( $condition, $message ) {
 		exit( 1 );
 	}
 }
-function render_color_filter( $query = array(), $pagination = false, $search = false, $pod_name = 'post' ) {
+function render_color_filter( $query = array(), $pagination = false, $search = false, $pod_name = 'post', $swatch_fields = array() ) {
 	global $render_dir, $wpdb;
 	$_GET       = $query;
 	$attributes = array(
@@ -214,6 +220,7 @@ function render_color_filter( $query = array(), $pagination = false, $search = f
 		'enablePagination' => $pagination,
 		'enableSearch'     => $search,
 		'filterFields'     => array( 'array_color', 'object_color', 'description', 'pages', 'price' ),
+		'colorSwatchFields' => $swatch_fields,
 	);
 	$block = (object) array();
 	ob_start();
@@ -232,6 +239,28 @@ expect_color_result( 2 === substr_count( $html, '<option value="brown&quot;test"
 expect_color_result( false !== strpos( $html, 'placeholder="Filter Description..."' ), 'text filters should remain text inputs' );
 expect_color_result( 0 === $wpdb->queries, 'an inactive color filter should not query colors' );
 expect_color_result( false !== strpos( $find_params['where'], "t.post_status = 'publish'" ) && false !== strpos( $find_params['where'], "t.post_password = ''" ), 'post lists should exclude unpublished and password-protected items' );
+
+$html = render_color_filter( array(), false, false, 'post', array( 'array_color' ) );
+expect_color_result( false !== strpos( $html, '<fieldset class="pods-color-swatches">' ) && false !== strpos( $html, '<legend>Array color</legend>' ), 'enabled color fields should render a labeled swatch group' );
+expect_color_result( false !== strpos( $html, 'name="pods_filter_post_array_color" value="" checked="checked"' ), 'All should be selected when no color filter is active' );
+expect_color_result( false !== strpos( $html, 'name="pods_filter_post_array_color" value="red"' ) && false !== strpos( $html, 'background-color: hsl(0, 55%, 52.5%)' ), 'red should have a representative swatch' );
+expect_color_result( false !== strpos( $html, 'value="brown&quot;test"' ) && false !== strpos( $html, 'title="&lt;Brown&gt;"' ) && false !== strpos( $html, 'hsl(30, 70%, 32.5%)' ), 'custom color families should have escaped labels and representative swatches' );
+expect_color_result( false !== strpos( $html, '<span>Missing range</span>' ), 'families without valid ranges should remain visible as text' );
+expect_color_result( false !== strpos( $html, '<select id="filter-post-object_color"' ), 'other color fields should remain dropdowns' );
+expect_color_result( 0 === $wpdb->queries, 'rendering swatches without an active filter should not query colors' );
+$html = render_color_filter( array( 'pods_filter_post_array_color' => 'red', 'pods_filter_post_description' => 'item', 'pods_search_post' => 'search', 'other' => 'keep', 'pods_page_post' => '2' ), true, true, 'post', array( 'array_color', 'object_color' ) );
+expect_color_result( false !== strpos( $html, 'name="pods_filter_post_array_color" value="red" checked="checked"' ) && false !== strpos( $find_params['where'], "'#FA479A'" ), 'selected swatches should apply the same fuzzy matching as dropdowns' );
+expect_color_result( 2 === substr_count( $html, '<fieldset class="pods-color-swatches">' ), 'each enabled color field should have its own swatch group' );
+expect_color_result( false !== strpos( $html, 'name="pods_filter_post_description"' ) && false !== strpos( $html, 'value="item"' ) && false !== strpos( $html, 'name="pods_search_post"' ) && false !== strpos( $html, 'value="search"' ) && false !== strpos( $html, 'name="other" value="keep"' ), 'swatch forms should preserve other filters, search and unrelated parameters' );
+expect_color_result( false === strpos( $html, 'name="pods_page_post"' ), 'changing a swatch should reset pagination' );
+$html = render_color_filter( array( 'pods_filter_post_array_color' => '' ), false, false, 'post', array( 'array_color' ) );
+expect_color_result( false !== strpos( $html, 'name="pods_filter_post_array_color" value="" checked="checked"' ) && false === strpos( $find_params['where'], '`array_color`.meta_value IN' ), 'All should clear only the color filter' );
+$html = render_color_filter( array( 'pods_filter_post_array_color' => 'missing' ), false, false, 'post', array( 'array_color' ) );
+expect_color_result( false !== strpos( $html, 'The selected color is not available for filtering.' ) && false !== strpos( $find_params['where'], '1 = 0' ), 'invalid swatch families should retain the existing explicit error' );
+expect_color_result( pods_block_suite_color_matches_ranges( pods_block_suite_hex_to_hsl( '#FF0000' ), array( array( 'hue' => array( 345, 15 ) ) ) ) && 'hsl(0, 70%, 50%)' === pods_block_suite_color_swatch( array( array( 'hue' => array( 345, 15 ) ) ) ), 'wrapped hue ranges should produce representative swatches around zero' );
+$transients = array();
+$options = array();
+$wpdb->queries = 0;
 
 render_color_filter( array( 'pods_search_post' => "reader's 100%" ), false, true );
 expect_color_result( false !== strpos( $find_params['where'], "t.post_title LIKE '%reader''s 100\\%%'" ) && false !== strpos( $find_params['where'], 'EXISTS (' ), 'search should include escaped title, content and text metadata conditions' );

@@ -26,6 +26,7 @@ export default function Edit( { attributes, setAttributes } ) {
 		orderDir,
 		enablePagination,
 		filterFields,
+		colorSwatchFields,
 		enableSearch,
 		flexDirection,
 		justifyContent,
@@ -96,6 +97,7 @@ export default function Edit( { attributes, setAttributes } ) {
 								setAttributes( {
 									selectedPod: val,
 									filterFields: [],
+									colorSwatchFields: [],
 									orderBy: 'post_date',
 								} );
 							} }
@@ -155,14 +157,30 @@ export default function Edit( { attributes, setAttributes } ) {
 								{ __( 'Select fields visitors can filter by:', 'pods-block-suite' ) }
 							</p>
 							{ availableFields.map( ( field ) => (
-								<CheckboxControl
-									key={ field.name }
-									label={ `${ field.label } [${ field.type }]` }
-									checked={ filterFields.includes( field.name ) }
-									onChange={ ( isChecked ) =>
-										toggleFilterField( field.name, isChecked )
-									}
-								/>
+								<div key={ field.name }>
+									<CheckboxControl
+										label={ `${ field.label } [${ field.type }]` }
+										checked={ filterFields.includes( field.name ) }
+										onChange={ ( isChecked ) =>
+											toggleFilterField( field.name, isChecked )
+										}
+									/>
+									{ field.type === 'color' && filterFields.includes( field.name ) && (
+										<div style={ { marginLeft: '24px' } }>
+											<CheckboxControl
+												label={ __( 'Use Color Swatches', 'pods-block-suite' ) }
+												checked={ colorSwatchFields.includes( field.name ) }
+												onChange={ ( isChecked ) =>
+													setAttributes( {
+														colorSwatchFields: isChecked
+															? [ ...colorSwatchFields, field.name ]
+															: colorSwatchFields.filter( ( name ) => name !== field.name ),
+													} )
+												}
+											/>
+										</div>
+									) }
+								</div>
 							) ) }
 						</div>
 					) }

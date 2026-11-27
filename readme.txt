@@ -4,7 +4,7 @@ Tags:              pods, gutenberg, blocks, custom-fields, dynamic-content
 Requires at least: 6.5
 Tested up to:      6.7
 Requires PHP:      7.4
-Stable tag:        1.3.0
+Stable tag:        1.3.1
 License:           GPL-2.0-or-later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -23,7 +23,7 @@ A complete suite of Gutenberg blocks for PODS that lets you display, loop, and f
 3. **PODS Item List Container (`pods-block-suite/item-list-container`)**
    Queries and lists items from any selected POD with configurable sorting, pagination, responsive Flexbox grids, and **interactive frontend visitor filters**. Administrators can select which fields visitors can filter by:
    * **Selection & Relationship fields (`pick`, `taxonomy`, `boolean`):** Automatically rendered as `<select>` dropdowns populated with available options.
-   * **Color fields (`color`):** Filter by named HSL color families. Customize labels and matching ranges with the `pods_block_suite_color_list` and `pods_block_suite_color_ranges` filters.
+   * **Color fields (`color`):** Filter by named HSL color families, using a dropdown or optional swatches for each enabled color field. Customize labels and matching ranges with the `pods_block_suite_color_list` and `pods_block_suite_color_ranges` filters.
    * **Numeric & Currency fields (`number`, `currency`):** Rendered with a comparison operator selector (`=`, `>`, `>=`, `<`, `<=`) paired with a numeric input.
    * **Text fields & Keyword Search:** Rendered as text inputs for partial matching.
 
@@ -97,3 +97,6 @@ Yes. All interface strings use the `pods-block-suite` text domain and `@wordpres
 * Prevented links within PODS blocks from navigating in the block editor.
 * Fixed numeric comparison options, keyword searching, and post visibility in item lists.
 * Improved clickable card overlays for nested links.
+
+= 1.3.1 =
+* Added optional color swatches for item list color filters.
